@@ -1,15 +1,18 @@
 import { useEffect, useRef } from "react";
 import { Map as MaplibreMap, Marker, Popup, NavigationControl, setWorkerUrl } from "maplibre-gl";
-import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import "maplibre-gl/dist/maplibre-gl.css";
 import styles from "./MapView.module.css";
 
-// Vite's dep pre-bundler can't statically discover maplibre-gl's own worker
-// (it resolves the URL at runtime, not via a literal `new URL(...)` it can
-// analyze), so the worker file never gets emitted into the production build
-// on its own. Importing it explicitly with `?url` forces Vite to include it
-// and gives us a real, hashed asset URL to hand to maplibre-gl.
-setWorkerUrl(maplibreWorkerUrl);
+// maplibre-gl's own worker bundle isn't discoverable by Vite's dep
+// pre-bundler (its URL is resolved at runtime, not via a literal
+// `new URL(...)` Vite can analyze), so it never gets emitted into the
+// production build on its own. Worse, that worker file itself does a
+// relative `import "./maplibre-gl-shared.mjs"` — if we copy just the worker
+// via a hashed `?url` import, that sibling file's hashed name won't match
+// the worker's hardcoded relative path and it 404s. So both files are
+// copied verbatim (unhashed) into public/maplibre/ instead, keeping their
+// original relative path to each other intact.
+setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
 
 // Adapted from a shadcn/Tailwind/TypeScript reference component into this
 // project's plain React + CSS Modules stack (no Tailwind/shadcn/TS here).
