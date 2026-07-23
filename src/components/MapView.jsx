@@ -1,7 +1,15 @@
 import { useEffect, useRef } from "react";
-import { Map as MaplibreMap, Marker, Popup, NavigationControl } from "maplibre-gl";
+import { Map as MaplibreMap, Marker, Popup, NavigationControl, setWorkerUrl } from "maplibre-gl";
+import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import "maplibre-gl/dist/maplibre-gl.css";
 import styles from "./MapView.module.css";
+
+// Vite's dep pre-bundler can't statically discover maplibre-gl's own worker
+// (it resolves the URL at runtime, not via a literal `new URL(...)` it can
+// analyze), so the worker file never gets emitted into the production build
+// on its own. Importing it explicitly with `?url` forces Vite to include it
+// and gives us a real, hashed asset URL to hand to maplibre-gl.
+setWorkerUrl(maplibreWorkerUrl);
 
 // Adapted from a shadcn/Tailwind/TypeScript reference component into this
 // project's plain React + CSS Modules stack (no Tailwind/shadcn/TS here).
