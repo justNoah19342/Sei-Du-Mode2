@@ -42,6 +42,19 @@ export default function MapView() {
 
     map.addControl(new NavigationControl({ showCompass: false }), "top-right");
 
+    // Surface style/tile/network failures instead of silently leaving a
+    // blank map — MapLibre swallows these into an 'error' event rather than
+    // throwing, so without this listener they're invisible in production.
+    map.on("error", (e) => {
+      console.error("MapLibre error:", e?.error || e);
+    });
+
+    // Guards against the container reporting the wrong size at construction
+    // time (e.g. before webfonts load and shift layout) by re-measuring
+    // whenever it actually changes, instead of only once on mount.
+    const resizeObserver = new ResizeObserver(() => map.resize());
+    resizeObserver.observe(container);
+
     const markerEl = document.createElement("div");
     markerEl.className = styles.marker;
     markerEl.setAttribute("aria-hidden", "true");
@@ -66,6 +79,7 @@ export default function MapView() {
     const marker = new Marker({ element: markerEl }).setLngLat(SHOP_COORDS).addTo(map);
 
     return () => {
+      resizeObserver.disconnect();
       marker.remove();
       map.remove();
     };
