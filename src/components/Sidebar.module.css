@@ -1,0 +1,131 @@
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-7) var(--space-6) var(--space-6);
+  overflow: hidden;
+  isolation: isolate;
+  transition: width 280ms var(--ease-reveal);
+  /* Organic right edge instead of a hard vertical line. Percentage points so it
+     scales correctly with the sidebar's actual width/height regardless of
+     collapsed state (path() would not). */
+  clip-path: polygon(
+    0 0, 94% 0, 100% 6%, 96% 14%, 100% 24%, 97% 34%, 100% 46%,
+    98% 58%, 100% 70%, 96% 80%, 100% 90%, 97% 96%, 100% 100%, 0 100%
+  );
+}
+
+.sidebar.collapsed {
+  width: var(--sidebar-collapsed-width);
+  padding: 0;
+  background: var(--gradient-blob-1);
+  cursor: pointer;
+}
+
+.touchToggle {
+  position: absolute;
+  z-index: 3;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-secondary-dark);
+  box-shadow: var(--shadow-sm);
+  transition: transform 280ms var(--ease-reveal), background 280ms var(--ease-reveal);
+}
+
+.collapsed .touchToggle {
+  transform: translateX(-50%) rotate(180deg);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.touchToggle:focus-visible {
+  outline: 2px solid var(--color-secondary-dark);
+  outline-offset: 2px;
+}
+
+.blobGlow {
+  top: -60px;
+  left: -80px;
+  width: 320px;
+  height: 320px;
+}
+
+.blobTop {
+  top: -40px;
+  right: -60px;
+  width: 180px;
+  height: 180px;
+}
+
+.motif {
+  width: 340px;
+  height: 440px;
+  bottom: -60px;
+  left: -40px;
+}
+
+.logoWrap {
+  position: relative;
+  z-index: 1;
+  margin-bottom: var(--space-5);
+}
+
+.rule {
+  border: none;
+  border-top: 1px solid var(--color-secondary);
+  opacity: 0.25;
+  width: 48px;
+  margin: 0 0 var(--space-6);
+}
+
+.navList {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.callCta {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding-inline: var(--space-5);
+  border-radius: var(--radius-xl);
+  background: var(--gradient-blob-1);
+  color: var(--color-secondary-dark);
+  font-weight: 600;
+  box-shadow: var(--shadow-glow);
+  transition: transform 200ms var(--ease-reveal);
+}
+
+.callCta:hover {
+  transform: translateY(-2px);
+}
+
+.callCta:focus-visible {
+  outline: 2px solid var(--color-secondary-dark);
+  outline-offset: 3px;
+}
+
+@media (max-width: 899px) {
+  .sidebar {
+    display: none;
+  }
+}

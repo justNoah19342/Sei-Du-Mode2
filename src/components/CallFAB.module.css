@@ -1,0 +1,31 @@
+.fab {
+  display: none;
+  position: fixed;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  z-index: 25;
+  width: 56px;
+  height: 56px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--gradient-blob-1);
+  color: var(--color-secondary-dark);
+  box-shadow: var(--shadow-glow);
+  transition: transform 200ms var(--ease-reveal);
+}
+
+.fab:hover {
+  transform: scale(1.06);
+}
+
+.fab:focus-visible {
+  outline: 2px solid var(--color-secondary-dark);
+  outline-offset: 3px;
+}
+
+@media (max-width: 899px) {
+  .fab {
+    display: flex;
+  }
+}

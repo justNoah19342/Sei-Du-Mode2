@@ -1,0 +1,82 @@
+/*
+  Design tokens for SEI DU Mode.
+  Colors derived from the boutique logo (gold/amber figure + wordmark,
+  charcoal "Boutique" lockup, white background).
+  Validated against ui-ux-pro-max's color/typography database (warm-amber-on-cream
+  and serif+sans "Classic Elegant" fashion pairings both point the same direction);
+  Fraunces/Jost chosen over the database's own Playfair+Inter suggestion to stay
+  closer to the logo's rounded warmth and avoid the most common luxury-site pairing.
+  Icon set: @phosphor-icons/react — not from ui-ux-pro-max's curated icon DB
+  (0 matches there for clothing/shoes/bags/jewelry), same library the DB uses elsewhere.
+*/
+
+:root {
+  /* Colors */
+  --color-primary: #f3a712;
+  --color-primary-dark: #c9860b;
+  --color-primary-light: #fbd98a;
+  --color-secondary: #4a4a4a;
+  --color-secondary-dark: #2b2b2b;
+  --color-background: #faf7f2;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f3eee3;
+  --color-text: #333333;
+  --color-text-muted: #7a7a7a;
+  --color-border: #e7dfce;
+  --color-white: #ffffff;
+
+  /* Organic gradients */
+  --gradient-blob-1: linear-gradient(135deg, #f3a712 0%, #fbd98a 100%);
+  --gradient-blob-2: radial-gradient(circle at 30% 30%, rgba(243, 167, 18, 0.3), rgba(250, 247, 242, 0) 70%);
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 40px;
+  --radius-blob: 62% 38% 55% 45% / 45% 55% 40% 60%;
+
+  /* Shadows — warm-tinted, never pure black */
+  --shadow-sm: 0 2px 8px rgba(74, 74, 74, 0.08);
+  --shadow-md: 0 8px 24px rgba(74, 74, 74, 0.12);
+  --shadow-glow: 0 6px 20px rgba(243, 167, 18, 0.35);
+
+  /* Typography */
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Jost", "Segoe UI", sans-serif;
+  --fs-sm: clamp(0.85rem, 0.8rem + 0.2vw, 0.95rem);
+  --fs-body: clamp(1rem, 0.95rem + 0.2vw, 1.125rem);
+  --fs-h3: clamp(1.4rem, 1.2rem + 1vw, 1.8rem);
+  --fs-h2: clamp(1.9rem, 1.5rem + 1.8vw, 2.6rem);
+  --fs-h1: clamp(2.6rem, 2rem + 3vw, 4rem);
+
+  /* Motion — timings sourced from ui-ux-pro-max's gsap domain (Scroll Reveal: Subtle/Standard tiers),
+     implemented here via IntersectionObserver + CSS transitions rather than a GSAP dependency. */
+  --ease-reveal: cubic-bezier(0.25, 0.46, 0.45, 0.94); /* power1.out equivalent */
+  --duration-reveal: 380ms;
+  --stagger-step: 80ms;
+
+  /* Layout */
+  --sidebar-width: 288px;
+  --sidebar-collapsed-width: 40px;
+  --breakpoint-tablet: 600px;
+  --breakpoint-desktop: 900px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-reveal: 0ms;
+    --stagger-step: 0ms;
+  }
+}

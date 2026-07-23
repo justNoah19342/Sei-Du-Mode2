@@ -1,0 +1,18 @@
+.blob {
+  position: absolute;
+  border-radius: var(--radius-blob);
+  filter: blur(2px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.primary {
+  background: var(--gradient-blob-1);
+  opacity: 0.9;
+}
+
+.glow {
+  background: var(--gradient-blob-2);
+  filter: blur(18px);
+  opacity: 1;
+}

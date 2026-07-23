@@ -1,0 +1,134 @@
+.wrap {
+  margin-top: var(--space-2);
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  width: fit-content;
+  margin: 0 auto var(--space-6);
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+}
+
+.toggleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  transition: background 200ms var(--ease-reveal), color 200ms var(--ease-reveal);
+}
+
+.toggleBtn:hover {
+  color: var(--color-secondary-dark);
+}
+
+.toggleActive {
+  background: var(--color-primary);
+  color: var(--color-secondary-dark);
+}
+
+.toggleBtn:focus-visible {
+  outline: 2px solid var(--color-primary-dark);
+  outline-offset: 2px;
+}
+
+.container {
+  position: relative;
+}
+
+.container.stack {
+  height: 220px;
+  width: min(320px, 86vw);
+  margin: 0 auto;
+}
+
+.container.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-6) var(--space-5);
+}
+
+.card h3 {
+  font-size: var(--fs-h3);
+  margin-bottom: var(--space-3);
+}
+
+.stackCard {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.stackCard.grabbable {
+  /* Top of the stack reads as physically lifted, deeper cards sit flatter. */
+  box-shadow: var(--shadow-md);
+}
+
+.grabbable {
+  cursor: grab;
+}
+
+.grabbable:active {
+  cursor: grabbing;
+}
+
+.swipeHint {
+  position: absolute;
+  bottom: var(--space-3);
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.dashNav {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.dashHit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+}
+
+.dashHit:focus-visible {
+  outline: 2px solid var(--color-primary-dark);
+  outline-offset: 2px;
+}
+
+.dash {
+  width: 20px;
+  height: 2px;
+  background: var(--color-border);
+  transform: scaleX(0.5);
+  transform-origin: center;
+  transition: transform 200ms var(--ease-reveal), background 200ms var(--ease-reveal);
+}
+
+.dashActive {
+  background: var(--color-primary);
+  transform: scaleX(1);
+}

@@ -1,0 +1,7 @@
+.motif {
+  position: absolute;
+  fill: var(--color-secondary-dark);
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: 0;
+}

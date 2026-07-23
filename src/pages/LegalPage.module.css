@@ -1,0 +1,30 @@
+.page {
+  min-height: 100vh;
+  padding-block: var(--space-8);
+  background: var(--color-background);
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: var(--space-6);
+  color: var(--color-primary-dark);
+  font-weight: 500;
+}
+
+.page h1 {
+  margin-bottom: var(--space-6);
+}
+
+.page p {
+  max-width: 65ch;
+  margin-bottom: var(--space-4);
+}
+
+.imprint {
+  display: block;
+  margin-top: var(--space-8);
+  font-style: normal;
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-5);
+}

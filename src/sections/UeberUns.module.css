@@ -1,0 +1,70 @@
+.section {
+  background: var(--color-surface-alt);
+  /* Establishes a containment context so .werteGrid/.mobileStackWrap can react
+     to this section's actual rendered width below — not just the viewport
+     width. This is what lets the layout switch to the mobile stack the
+     instant the hover-expanded sidebar squeezes the available space, even on
+     a wide screen where a plain @media query would never fire. */
+  container-type: inline-size;
+}
+
+.pullQuote {
+  font-family: var(--font-display);
+  font-size: var(--fs-h2);
+  font-style: italic;
+  color: var(--color-secondary-dark);
+  max-width: 60ch;
+  margin-bottom: var(--space-8);
+  line-height: 1.3;
+}
+
+.werteGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-5);
+}
+
+.werteCard {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6) var(--space-5);
+  box-shadow: var(--shadow-sm);
+  transition: transform 380ms var(--ease-reveal);
+}
+
+.werteCard h3 {
+  font-size: var(--fs-h3);
+  margin-bottom: var(--space-3);
+}
+
+.werteCard.offset {
+  transform: translateY(var(--space-5));
+}
+
+/* Once the last card scrolls past the top of the viewport, settle the
+   staggered cards into a flush, evenly aligned grid. */
+.werteGrid.flush .werteCard.offset {
+  transform: translateY(0);
+}
+
+.mobileStackWrap {
+  display: none;
+}
+
+/* Container query (not @media): reacts to this section's own rendered width,
+   so an expanded sidebar squeezing the content column triggers the same
+   switch a narrow viewport would. */
+@container (max-width: 899px) {
+  .werteGrid {
+    display: none;
+  }
+  .mobileStackWrap {
+    display: block;
+  }
+}
+
+@media (max-width: 599px) {
+  .pullQuote {
+    font-size: var(--fs-h3);
+  }
+}

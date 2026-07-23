@@ -1,0 +1,87 @@
+.drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--color-surface);
+  padding: var(--space-4) var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateX(100%);
+  transition: transform 320ms var(--ease-reveal);
+}
+
+.drawer.open {
+  transform: translateX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer {
+    transition: opacity 200ms linear;
+    transform: none;
+    opacity: 0;
+    visibility: hidden;
+  }
+  .drawer.open {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+.blobGlow {
+  top: -60px;
+  right: -80px;
+  width: 260px;
+  height: 260px;
+}
+
+.topRow {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-7);
+}
+
+.close {
+  width: 44px;
+  height: 44px;
+  font-size: 1.25rem;
+  color: var(--color-secondary-dark);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--color-primary-dark);
+  outline-offset: 2px;
+}
+
+.navList {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  flex: 1;
+}
+
+.callCta {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding-inline: var(--space-5);
+  border-radius: var(--radius-xl);
+  background: var(--gradient-blob-1);
+  color: var(--color-secondary-dark);
+  font-weight: 600;
+  box-shadow: var(--shadow-glow);
+}
+
+@media (min-width: 900px) {
+  .drawer {
+    display: none;
+  }
+}

@@ -1,0 +1,32 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--color-secondary-dark);
+  border-radius: var(--radius-sm);
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--color-primary-dark);
+  outline-offset: 2px;
+}
+
+@media (max-width: 899px) {
+  .header {
+    display: flex;
+  }
+}
