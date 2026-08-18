@@ -23,24 +23,33 @@ async function handleFacebookVideos(env) {
     return jsonResponse({ error: "Facebook API not configured" }, 503);
   }
 
-  const url = new URL(`https://graph.facebook.com/${GRAPH_API_VERSION}/${pageId}/videos`);
-  url.searchParams.set("fields", "id,title,description,permalink_url,picture");
-  url.searchParams.set("limit", "8");
-  url.searchParams.set("access_token", accessToken);
+  // Regular videos and Reels are separate content types on the Graph API —
+  // /videos alone misses Reels, so both edges are fetched and merged.
+  const videosUrl = new URL(`https://graph.facebook.com/${GRAPH_API_VERSION}/${pageId}/videos`);
+  videosUrl.searchParams.set("fields", "id,title,description,permalink_url,picture");
+  videosUrl.searchParams.set("limit", "8");
+  videosUrl.searchParams.set("access_token", accessToken);
 
-  let fbResponse;
+  const reelsUrl = new URL(`https://graph.facebook.com/${GRAPH_API_VERSION}/${pageId}/video_reels`);
+  reelsUrl.searchParams.set("fields", "id,description,permalink_url,picture");
+  reelsUrl.searchParams.set("limit", "8");
+  reelsUrl.searchParams.set("access_token", accessToken);
+
+  let videosResponse, reelsResponse;
   try {
-    fbResponse = await fetch(url);
+    [videosResponse, reelsResponse] = await Promise.all([fetch(videosUrl), fetch(reelsUrl)]);
   } catch {
     return jsonResponse({ error: "Facebook API unreachable" }, 502);
   }
 
-  if (!fbResponse.ok) {
+  if (!videosResponse.ok && !reelsResponse.ok) {
     return jsonResponse({ error: "Facebook API request failed" }, 502);
   }
 
-  const data = await fbResponse.json();
-  const videos = (data.data || []).map((video) => ({
+  const videosData = videosResponse.ok ? await videosResponse.json() : { data: [] };
+  const reelsData = reelsResponse.ok ? await reelsResponse.json() : { data: [] };
+
+  const videos = [...(videosData.data || []), ...(reelsData.data || [])].map((video) => ({
     id: video.id,
     title: video.title || video.description?.slice(0, 80) || "Video",
     thumbnail: video.picture || null,
