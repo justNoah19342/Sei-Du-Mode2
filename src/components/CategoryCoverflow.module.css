@@ -1,0 +1,141 @@
+.row {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-8);
+}
+
+.viewport {
+  --cf-width: 220px;
+  --cf-gap: var(--space-5);
+  --cf-body-height: 130px;
+  position: relative;
+  width: var(--cf-width);
+  min-height: calc(var(--cf-width) * 0.75 + var(--cf-body-height));
+}
+
+.slide {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--cf-width);
+  pointer-events: none;
+  transition: opacity 380ms var(--ease-reveal), transform 380ms var(--ease-reveal);
+}
+
+.slideList {
+  list-style: none;
+}
+
+.navButton {
+  position: absolute;
+  top: 100%;
+  /* Straddle the card's bottom edge (half above, half below) instead of
+     sitting fully below it, so the row doesn't need extra section height
+     just to make room for the arrows. */
+  margin-top: -24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-secondary-dark);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 220ms var(--ease-reveal), transform 220ms var(--ease-reveal);
+}
+
+/* Flank the centered card right at its own left/right edge — the viewport
+   is exactly as wide as one card, so its box edges are the center card's
+   edges. */
+.navButton.prev {
+  right: calc(100% + var(--space-3));
+}
+
+.navButton.next {
+  left: calc(100% + var(--space-3));
+}
+
+.navButton:hover {
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-2px);
+}
+
+.navButton:focus-visible {
+  outline: 2px solid var(--color-primary-dark);
+  outline-offset: 3px;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+  background: rgba(43, 43, 43, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 100;
+  animation: overlayFade 220ms var(--ease-reveal);
+}
+
+.overlayCard {
+  width: 440px;
+  max-width: 90vw;
+  animation: overlayCardIn 220ms var(--ease-reveal);
+}
+
+@keyframes overlayFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlayCardIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 899px) {
+  .viewport {
+    --cf-width: 160px;
+    --cf-gap: var(--space-4);
+    --cf-body-height: 110px;
+  }
+  .overlayCard {
+    width: 320px;
+  }
+}
+
+@media (max-width: 599px) {
+  .viewport {
+    --cf-width: 130px;
+    --cf-gap: var(--space-4);
+    --cf-body-height: 100px;
+  }
+  .navButton {
+    width: 40px;
+    height: 40px;
+    margin-top: -20px;
+  }
+  .overlayCard {
+    width: 260px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .overlayCard {
+    animation: none;
+  }
+}

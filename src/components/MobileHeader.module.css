@@ -1,7 +1,9 @@
 .header {
   position: sticky;
-  top: 0;
-  z-index: 30;
+  /* Sticks right below the announcement bar instead of at the very top, so
+     the two never overlap — 0px when the bar isn't shown. */
+  top: var(--announcement-height, 0px);
+  z-index: 25;
   display: none;
   align-items: center;
   justify-content: space-between;
@@ -29,4 +31,12 @@
   .header {
     display: flex;
   }
+}
+
+/* Hidden and non-interactive while a product card is enlarged (see
+   CategoryCoverflow.jsx) — the blurred overlay should read as the only
+   thing on the page. */
+:global(body.product-overlay-open) .header {
+  visibility: hidden;
+  pointer-events: none;
 }

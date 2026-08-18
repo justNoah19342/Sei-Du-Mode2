@@ -4,6 +4,11 @@ body {
   font-family: var(--font-body);
   font-size: var(--fs-body);
   line-height: 1.6;
+  /* Safety net: several sections intentionally bleed decorative or
+     off-window elements past their own edges (motifs, coverflow buffer
+     slides). Without this, that bleed can widen the page's scrollable
+     area and let it scroll further right than the actual content. */
+  overflow-x: hidden;
 }
 
 h1,
@@ -27,6 +32,8 @@ h3 {
 }
 
 .container {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 1180px;
   margin-inline: auto;
@@ -34,6 +41,7 @@ h3 {
 }
 
 .section {
+  position: relative;
   padding-block: var(--space-9);
 }
 

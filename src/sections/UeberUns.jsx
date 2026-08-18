@@ -1,8 +1,12 @@
 import SectionHeading from "../components/SectionHeading";
 import MobileWerteStack from "../components/MobileWerteStack";
+import SectionReveal from "../components/SectionReveal";
 import { werte } from "../data/content";
 import { useScrollExitTop } from "../hooks/useScrollExitTop";
+import { getSectionInfo } from "../lib/sectionRevealStore";
 import styles from "./UeberUns.module.css";
+
+const { index: SECTION_INDEX, color: SECTION_COLOR } = getSectionInfo("ueber-uns");
 
 // TODO: Gruendungsjahr/Firmengeschichte ergaenzen, sobald Christina Details liefert.
 // TODO: echte Kundenzitate/Testimonials einfuegen, sobald freigegeben — aktuell nicht gerendert.
@@ -12,6 +16,7 @@ export default function UeberUns() {
 
   return (
     <section id="ueber-uns" className={`${styles.section} section`}>
+      <SectionReveal index={SECTION_INDEX} color={SECTION_COLOR} />
       <div className="container">
         <SectionHeading eyebrow="Über uns" title="Der Name ist Programm" />
 

@@ -1,0 +1,96 @@
+.section {
+  background: var(--color-background);
+  padding-bottom: var(--space-8);
+}
+
+.viewport {
+  overflow: hidden;
+  padding-block: 20px;
+  margin-block: -20px;
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    #000 var(--space-8),
+    #000 calc(100% - var(--space-8)),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    #000 var(--space-8),
+    #000 calc(100% - var(--space-8)),
+    transparent 100%
+  );
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  width: max-content;
+  padding-inline: var(--space-5);
+  animation: marquee 36s linear infinite;
+}
+
+.track:hover,
+.track:focus-within {
+  animation-play-state: paused;
+}
+
+.card {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 168px;
+  height: 96px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4);
+  transition: box-shadow 380ms var(--ease-reveal), transform 380ms var(--ease-reveal);
+}
+
+.card:hover,
+.card:focus-visible {
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-2px);
+}
+
+.logo {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: grayscale(1);
+  opacity: 0.65;
+  transition: filter 380ms var(--ease-reveal), opacity 380ms var(--ease-reveal);
+}
+
+.card:hover .logo,
+.card:focus-visible .logo {
+  filter: grayscale(0);
+  opacity: 1;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    animation: none;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 599px) {
+  .card {
+    width: 136px;
+    height: 80px;
+  }
+}

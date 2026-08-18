@@ -29,3 +29,11 @@
     display: flex;
   }
 }
+
+/* Hidden and non-interactive while a product card is enlarged (see
+   CategoryCoverflow.jsx) — the blurred overlay should read as the only
+   thing on the page. */
+:global(body.product-overlay-open) .fab {
+  visibility: hidden;
+  pointer-events: none;
+}

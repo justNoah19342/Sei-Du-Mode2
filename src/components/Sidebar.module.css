@@ -1,7 +1,10 @@
 .sidebar {
   position: sticky;
-  top: 0;
-  height: 100vh;
+  /* Sticks right below the announcement bar instead of at the very top, so
+     the two never overlap — 0px when the bar isn't shown. */
+  top: var(--announcement-height, 0px);
+  z-index: 25;
+  height: calc(100vh - var(--announcement-height, 0px));
   width: var(--sidebar-width);
   flex-shrink: 0;
   background: var(--color-surface);
@@ -128,4 +131,12 @@
   .sidebar {
     display: none;
   }
+}
+
+/* Hidden and non-interactive while a product card is enlarged (see
+   CategoryCoverflow.jsx) — the blurred overlay should read as the only
+   thing on the page. */
+:global(body.product-overlay-open) .sidebar {
+  visibility: hidden;
+  pointer-events: none;
 }

@@ -11,12 +11,22 @@
   height: 460px;
 }
 
-.motif {
+.motifLeft {
+  width: 480px;
+  height: 490px;
+  top: -4%;
+  left: -12%;
+  color: var(--color-text-muted);
+  opacity: 0.16;
+  transform: rotate(-6deg);
+}
+
+.motifRight {
   width: 380px;
-  height: 480px;
-  bottom: -80px;
-  right: 4%;
-  transform: scaleX(-1);
+  height: 388px;
+  bottom: 10px;
+  right: 2%;
+  color: var(--color-primary);
 }
 
 .inner {
@@ -90,5 +100,15 @@
   }
   .tagline {
     font-size: 1.15rem;
+  }
+
+  .motifRight {
+    display: none;
+  }
+
+  .motifLeft {
+    left: auto;
+    right: -18%;
+    top: -2%;
   }
 }

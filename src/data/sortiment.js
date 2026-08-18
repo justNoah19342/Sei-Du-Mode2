@@ -5,5 +5,5 @@ export const sortiment = [
   { key: "schuhe", label: "Schuhe", icon: "Sneaker" },
   { key: "taschen", label: "Taschen", icon: "Handbag" },
   { key: "accessoires", label: "Accessoires", icon: "Sunglasses" },
-  { key: "schmuck", label: "Schmuck", icon: "Diamond" },
+  { key: "schmuck", label: "Schmuck", icon: "Sparkle" },
 ];

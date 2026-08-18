@@ -1,11 +1,11 @@
 import { urlForImage } from "../lib/sanityClient";
 import styles from "./ProductCard.module.css";
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, expanded = true, large = false, onClick }) {
   const imageUrl = product.image ? urlForImage(product.image)?.width(480).height(360).fit("crop").url() : null;
 
   return (
-    <li className={styles.card}>
+    <li className={`${styles.card} ${large ? styles.large : ""}`} onClick={onClick}>
       <div className={styles.imageWrap}>
         {imageUrl ? (
           <img src={imageUrl} alt={product.name} loading="lazy" />
@@ -13,10 +13,14 @@ export default function ProductCard({ product }) {
           <div className={styles.imagePlaceholder} aria-hidden="true" />
         )}
       </div>
-      <div className={styles.body}>
-        <h3 className={styles.name}>{product.name}</h3>
-        <span className={styles.accent} aria-hidden="true" />
-        {product.beschreibung && <p className={styles.description}>{product.beschreibung}</p>}
+      <div className={`${styles.bodyWrap} ${expanded ? styles.open : ""}`}>
+        <div className={styles.bodyInner}>
+          <div className={styles.body}>
+            <h3 className={styles.name}>{product.name}</h3>
+            <span className={styles.accent} aria-hidden="true" />
+            {product.beschreibung && <p className={styles.description}>{product.beschreibung}</p>}
+          </div>
+        </div>
       </div>
     </li>
   );

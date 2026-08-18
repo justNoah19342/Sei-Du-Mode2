@@ -8,16 +8,45 @@
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-8);
+  grid-template-areas:
+    "photo form"
+    "info form";
+  column-gap: var(--space-8);
+  row-gap: var(--space-6);
   align-items: start;
   margin-bottom: var(--space-8);
 }
 
+.photoPlaceholder {
+  grid-area: photo;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  background: var(--color-surface-alt);
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-muted);
+}
+
+.photoPlaceholder span {
+  font-size: var(--fs-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .infoList {
+  grid-area: info;
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
-  padding-top: var(--space-2);
+}
+
+.formArea {
+  grid-area: form;
 }
 
 .infoList li {
@@ -52,7 +81,11 @@
 @media (max-width: 899px) {
   .grid {
     grid-template-columns: 1fr;
-    gap: var(--space-7);
+    grid-template-areas:
+      "info"
+      "form"
+      "photo";
+    row-gap: var(--space-7);
   }
 
   .infoList {

@@ -1,9 +1,13 @@
-import { MapPin, Phone, EnvelopeSimple, Clock } from "@phosphor-icons/react";
+import { MapPin, Phone, EnvelopeSimple, Clock, Image } from "@phosphor-icons/react";
 import SectionHeading from "../components/SectionHeading";
 import ContactForm from "../components/ContactForm";
 import MapView from "../components/MapView";
+import SectionReveal from "../components/SectionReveal";
 import { address, contact, openingHours } from "../data/content";
+import { getSectionInfo } from "../lib/sectionRevealStore";
 import styles from "./OeffnungszeitenKontakt.module.css";
+
+const { index: SECTION_INDEX, color: SECTION_COLOR } = getSectionInfo("kontakt");
 
 // TODO: Hausnummer vor Launch mit Christina abgleichen — manche Verzeichnisse
 // listen "Hauptstraße 61-63" statt "Hauptstraße 61".
@@ -11,10 +15,16 @@ import styles from "./OeffnungszeitenKontakt.module.css";
 export default function OeffnungszeitenKontakt() {
   return (
     <section id="kontakt" className="section">
+      <SectionReveal index={SECTION_INDEX} color={SECTION_COLOR} />
       <div className="container">
         <SectionHeading eyebrow="Öffnungszeiten & Kontakt" title="Schau vorbei" align="center" />
 
         <div className={styles.grid}>
+          <div className={styles.photoPlaceholder} aria-hidden="true">
+            <Image size={32} weight="light" />
+            <span>Platzhalter</span>
+          </div>
+
           <ul className={styles.infoList}>
             <li>
               <Clock size={22} weight="light" />
@@ -40,7 +50,9 @@ export default function OeffnungszeitenKontakt() {
             </li>
           </ul>
 
-          <ContactForm />
+          <div className={styles.formArea}>
+            <ContactForm />
+          </div>
         </div>
       </div>
 

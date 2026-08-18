@@ -10,7 +10,29 @@ export default defineConfig({
   projectId: "b9np6jbh",
   dataset: "production",
 
-  plugins: [structureTool(), visionTool()],
+  plugins: [
+    structureTool({
+      structure: (S) =>
+        S.list()
+          .title("Inhalt")
+          .items([
+            // Singleton: always the same fixed document, no "create new" list.
+            S.listItem()
+              .title("Ankündigungsbalken")
+              .id("ankuendigungsbalken")
+              .child(
+                S.document()
+                  .schemaType("ankuendigungsbalken")
+                  .documentId("ankuendigungsbalken")
+              ),
+            S.divider(),
+            ...S.documentTypeListItems().filter(
+              (item) => item.getId() !== "ankuendigungsbalken"
+            ),
+          ]),
+    }),
+    visionTool(),
+  ],
 
   schema: {
     types: schemaTypes,

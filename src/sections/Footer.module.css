@@ -1,4 +1,5 @@
 .footer {
+  position: relative;
   background: var(--color-secondary-dark);
   color: var(--color-white);
   padding-block: var(--space-8) var(--space-5);

@@ -1,3 +1,14 @@
+/* :global() needed — Vite's CSS Modules processor otherwise strips bare ID
+   selectors. The nav arrows straddle the card's bottom edge, so only a
+   small cushion is needed below them before the next section. */
+:global(#sortiment) {
+  padding-bottom: calc(var(--space-7) + 12px);
+  /* The coverflow's absolutely-positioned buffer slides sit well outside
+     the visible card (needed so they can fade in/out smoothly), which
+     otherwise widens the page's own scrollable area. */
+  overflow-x: hidden;
+}
+
 .intro {
   max-width: 56ch;
   margin: 0 auto var(--space-8);
@@ -13,12 +24,10 @@
 
 @media (max-width: 899px) {
   .grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 599px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
+.inlineSlot {
+  list-style: none;
 }

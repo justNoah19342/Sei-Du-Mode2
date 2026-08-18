@@ -1,0 +1,33 @@
+.wrapper {
+  position: fixed;
+  top: calc(var(--announcement-height, 0px) + var(--mobile-header-height, 0px) + var(--space-5));
+  right: var(--space-5);
+  z-index: 15;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 260ms var(--ease-reveal);
+}
+
+.wrapper[data-hidden="true"] {
+  opacity: 0;
+}
+
+/* Hidden while a product card is enlarged (see CategoryCoverflow.jsx) — the
+   blurred overlay should read as the only thing on the page. Already
+   pointer-events:none unconditionally above, so no extra rule needed there. */
+:global(body.product-overlay-open) .wrapper {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrapper {
+    transition: none;
+  }
+}
+
+@media (max-width: 599px) {
+  .wrapper {
+    top: calc(var(--announcement-height, 0px) + var(--mobile-header-height, 0px) + var(--space-3));
+    right: var(--space-3);
+  }
+}

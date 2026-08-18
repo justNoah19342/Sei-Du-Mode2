@@ -11,7 +11,8 @@ export default function Hero() {
   return (
     <section id="start" className={`${styles.hero} section`}>
       <BlobShape variant="glow" className={styles.blobGlow} />
-      <DancerMotif className={styles.motif} />
+      <DancerMotif className={styles.motifLeft} />
+      <DancerMotif className={styles.motifRight} />
 
       <div className={`container ${styles.inner}`}>
         <span className="eyebrow">SEI DU Mode · {address.city}</span>
