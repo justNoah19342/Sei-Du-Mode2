@@ -2,23 +2,14 @@
   background: var(--color-surface-alt);
 }
 
-.row {
-  margin-top: var(--space-7);
-}
-
-.row:first-of-type {
-  margin-top: var(--space-6);
-}
-
-.rowHeading {
-  font-size: var(--fs-h3);
-  margin-bottom: var(--space-5);
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: var(--space-5);
+  margin-top: var(--space-7);
+  /* Grid tracks stay their own width even when a track has no item in it, so
+     with fewer than 5 videos the real cards simply sit left-aligned instead
+     of stretching to fill the row. */
 }
 
 .card {
@@ -26,8 +17,14 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  transition: box-shadow 220ms var(--ease-reveal), transform 220ms var(--ease-reveal);
+  transition-delay: calc(var(--index, 0) * var(--stagger-step));
+}
+
+.card:hover,
+.card:focus-within {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
 }
 
 .thumbLink {
@@ -40,26 +37,51 @@
   background: linear-gradient(135deg, var(--color-surface-alt), var(--color-secondary-dark, #ccc));
   background-size: cover;
   background-position: center;
+  overflow: hidden;
+}
+
+.thumb::before {
+  /* Zoom lives on a pseudo-element (not the .thumb background itself) so the
+     scale transform doesn't fight the parent's aspect-ratio/overflow box. */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  background-size: cover;
+  background-position: center;
+  transition: transform 320ms var(--ease-reveal);
+}
+
+.card:hover .thumb::before,
+.card:focus-within .thumb::before {
+  transform: scale(1.06);
+}
+
+.playBadge {
+  position: absolute;
+  left: var(--space-3);
+  bottom: var(--space-3);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.playIcon {
-  color: var(--color-white);
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(4px);
+  box-shadow: var(--shadow-sm);
   transition: transform 200ms var(--ease-reveal);
 }
 
-.thumbLink:hover .playIcon,
-.thumbLink:focus-visible .playIcon {
-  transform: scale(1.12);
+.card:hover .playBadge,
+.card:focus-within .playBadge {
+  transform: scale(1.08);
 }
 
-.cardTitle {
-  padding: var(--space-3);
-  font-size: var(--fs-sm);
-  color: var(--color-text);
+.playIcon {
+  /* Facebook's own brand blue — the one deliberate cool accent on an
+     otherwise warm-toned card, signalling the source at a glance. */
+  color: #1876f2;
 }
 
 @media (max-width: 899px) {

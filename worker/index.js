@@ -26,13 +26,13 @@ async function handleFacebookVideos(env) {
   // Regular videos and Reels are separate content types on the Graph API —
   // /videos alone misses Reels, so both edges are fetched and merged.
   const videosUrl = new URL(`https://graph.facebook.com/${GRAPH_API_VERSION}/${pageId}/videos`);
-  videosUrl.searchParams.set("fields", "id,title,description,permalink_url,picture");
-  videosUrl.searchParams.set("limit", "8");
+  videosUrl.searchParams.set("fields", "id,permalink_url,picture,created_time");
+  videosUrl.searchParams.set("limit", "10");
   videosUrl.searchParams.set("access_token", accessToken);
 
   const reelsUrl = new URL(`https://graph.facebook.com/${GRAPH_API_VERSION}/${pageId}/video_reels`);
-  reelsUrl.searchParams.set("fields", "id,description,permalink_url,picture");
-  reelsUrl.searchParams.set("limit", "8");
+  reelsUrl.searchParams.set("fields", "id,permalink_url,picture,created_time");
+  reelsUrl.searchParams.set("limit", "10");
   reelsUrl.searchParams.set("access_token", accessToken);
 
   let videosResponse, reelsResponse;
@@ -55,12 +55,14 @@ async function handleFacebookVideos(env) {
     byId.set(item.id, item);
   }
 
-  const videos = [...byId.values()].map((video) => ({
-    id: video.id,
-    title: video.title || video.description?.slice(0, 80) || "Video",
-    thumbnail: video.picture || null,
-    permalinkUrl: toAbsoluteUrl(video.permalink_url),
-  }));
+  const videos = [...byId.values()]
+    .sort((a, b) => new Date(b.created_time) - new Date(a.created_time))
+    .slice(0, 5)
+    .map((video) => ({
+      id: video.id,
+      thumbnail: video.picture || null,
+      permalinkUrl: toAbsoluteUrl(video.permalink_url),
+    }));
 
   return jsonResponse({ videos }, 200, {
     // Short edge/browser cache so the widget doesn't call the Graph API on

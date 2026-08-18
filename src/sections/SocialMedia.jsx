@@ -1,27 +1,36 @@
-import { PlayCircle } from "@phosphor-icons/react";
+import { Play } from "@phosphor-icons/react";
 import SectionHeading from "../components/SectionHeading";
 import SectionReveal from "../components/SectionReveal";
-import { instagramVideos } from "../data/socialFeed";
 import { useFacebookVideos } from "../hooks/useFacebookVideos";
+import { useReveal } from "../hooks/useReveal";
 import { getSectionInfo } from "../lib/sectionRevealStore";
 import styles from "./SocialMedia.module.css";
 
 const { index: SECTION_INDEX, color: SECTION_COLOR } = getSectionInfo("social-media");
 const SKELETON_COUNT = 5;
 
-function PlaceholderVideoRow({ heading, videos }) {
+function VideoCard({ video, index }) {
+  const ref = useReveal();
+
   return (
-    <div className={styles.row}>
-      <h3 className={styles.rowHeading}>{heading}</h3>
-      <ul className={styles.grid}>
-        {videos.map((video) => (
-          <li key={video.id} className={styles.card}>
-            <div className={styles.thumb} />
-            <span className={styles.cardTitle}>{video.title}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <li ref={ref} className={`${styles.card} reveal`} style={{ "--index": index }}>
+      <a
+        href={video.permalinkUrl || undefined}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.thumbLink}
+        aria-label="Facebook-Video ansehen"
+      >
+        <div
+          className={styles.thumb}
+          style={video.thumbnail ? { backgroundImage: `url(${video.thumbnail})` } : undefined}
+        >
+          <span className={styles.playBadge}>
+            <Play className={styles.playIcon} size={18} weight="fill" />
+          </span>
+        </div>
+      </a>
+    </li>
   );
 }
 
@@ -36,36 +45,15 @@ function FacebookVideoRow() {
   }
 
   return (
-    <div className={styles.row}>
-      <h3 className={styles.rowHeading}>Facebook</h3>
-      <ul className={styles.grid}>
-        {status === "loading"
-          ? Array.from({ length: SKELETON_COUNT }, (_, i) => (
-              <li key={i} className={styles.card}>
-                <div className={styles.thumb} />
-              </li>
-            ))
-          : videos.map((video) => (
-              <li key={video.id} className={styles.card}>
-                <a
-                  href={video.permalinkUrl || undefined}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.thumbLink}
-                  aria-label={video.title}
-                >
-                  <div
-                    className={styles.thumb}
-                    style={video.thumbnail ? { backgroundImage: `url(${video.thumbnail})` } : undefined}
-                  >
-                    <PlayCircle className={styles.playIcon} size={40} weight="fill" />
-                  </div>
-                </a>
-                <span className={styles.cardTitle}>{video.title}</span>
-              </li>
-            ))}
-      </ul>
-    </div>
+    <ul className={styles.grid}>
+      {status === "loading"
+        ? Array.from({ length: SKELETON_COUNT }, (_, i) => (
+            <li key={i} className={styles.card}>
+              <div className={styles.thumb} />
+            </li>
+          ))
+        : videos.map((video, i) => <VideoCard key={video.id} video={video} index={i} />)}
+    </ul>
   );
 }
 
@@ -74,13 +62,8 @@ export default function SocialMedia() {
     <section id="social-media" className={`${styles.section} section`}>
       <SectionReveal index={SECTION_INDEX} color={SECTION_COLOR} />
       <div className="container">
-        <SectionHeading
-          eyebrow="Social Media"
-          title="Die letzten Videos"
-          align="center"
-        />
+        <SectionHeading eyebrow="Social Media" title="Die letzten Videos" align="center" />
         <FacebookVideoRow />
-        <PlaceholderVideoRow heading="Instagram" videos={instagramVideos} />
       </div>
     </section>
   );
