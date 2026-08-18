@@ -49,7 +49,13 @@ async function handleFacebookVideos(env) {
   const videosData = videosResponse.ok ? await videosResponse.json() : { data: [] };
   const reelsData = reelsResponse.ok ? await reelsResponse.json() : { data: [] };
 
-  const videos = [...(videosData.data || []), ...(reelsData.data || [])].map((video) => ({
+  // Reels show up under both edges, so dedupe by id before mapping.
+  const byId = new Map();
+  for (const item of [...(videosData.data || []), ...(reelsData.data || [])]) {
+    byId.set(item.id, item);
+  }
+
+  const videos = [...byId.values()].map((video) => ({
     id: video.id,
     title: video.title || video.description?.slice(0, 80) || "Video",
     thumbnail: video.picture || null,
