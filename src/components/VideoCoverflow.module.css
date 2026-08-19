@@ -86,12 +86,15 @@
   transition: background 180ms var(--ease-reveal), transform 180ms var(--ease-reveal);
 }
 
+/* Flank the centered card at its own left/right edge — the viewport is
+   exactly as wide as one card, so "100% + gap" lands just outside it,
+   instead of sitting on top of the video like a fixed inset did before. */
 .navButton.prev {
-  left: 4px;
+  right: calc(100% + var(--space-3));
 }
 
 .navButton.next {
-  right: 4px;
+  left: calc(100% + var(--space-3));
 }
 
 .navButton:hover {

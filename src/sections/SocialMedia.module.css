@@ -1,3 +1,13 @@
+/* :global() needed — Vite's CSS Modules processor otherwise strips bare ID
+   selectors. The VideoCoverflow's off-center slides (and now further-out nav
+   buttons) sit well outside the visible card on purpose, so this section
+   needs the same overflow containment Sortiment's #sortiment already uses
+   for its own coverflow, or that bleed widens the whole page's horizontal
+   scroll area. */
+:global(#social-media) {
+  overflow-x: hidden;
+}
+
 /* Deliberately its own design language — Facebook's own palette/typography,
    not the site's warm-amber/serif boutique system (tokens.css) — scoped as
    local custom properties here rather than added to the shared tokens. */
