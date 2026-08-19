@@ -77,6 +77,11 @@
   height: 440px;
   bottom: -60px;
   left: -40px;
+  transition: opacity 260ms var(--ease-reveal), filter 260ms var(--ease-reveal);
+}
+
+.collapsed .motif {
+  opacity: 0;
 }
 
 .logoWrap {

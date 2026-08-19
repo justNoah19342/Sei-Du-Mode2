@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getSectionRevealState, markSectionSettled, subscribeSectionReveal } from "../lib/sectionRevealStore";
 import styles from "./SectionReveal.module.css";
 
@@ -11,6 +11,15 @@ function computeRevealed(index) {
   // "===" (not "<=") — exactly one section is ever colored at a time. Moving
   // on to any other section (forward or backward) un-reveals this one again.
   return index === getSectionRevealState().activeIndex;
+}
+
+function computeOrigin(el, state) {
+  const rect = el.getBoundingClientRect();
+  const x = state.bubbleX - rect.left;
+  const y = state.bubbleY - rect.top;
+  const dx = Math.max(x, rect.width - x);
+  const dy = Math.max(y, rect.height - y);
+  return { x, y, r: Math.sqrt(dx * dx + dy * dy) + RADIUS_BUFFER };
 }
 
 export default function SectionReveal({ index, color }) {
@@ -32,14 +41,7 @@ export default function SectionReveal({ index, color }) {
       if (nextRevealed === wasRevealedRef.current) return;
 
       const el = layerRef.current;
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        const x = state.bubbleX - rect.left;
-        const y = state.bubbleY - rect.top;
-        const dx = Math.max(x, rect.width - x);
-        const dy = Math.max(y, rect.height - y);
-        setOrigin({ x, y, r: Math.sqrt(dx * dx + dy * dy) + RADIUS_BUFFER });
-      }
+      if (el) setOrigin(computeOrigin(el, state));
 
       setInstant(isInitialSync);
       wasRevealedRef.current = nextRevealed;
@@ -54,6 +56,22 @@ export default function SectionReveal({ index, color }) {
     applyFlip(getSectionRevealState(), true);
     return subscribeSectionReveal((state) => applyFlip(state, false));
   }, [index]);
+
+  // The radius above is only recomputed on a section flip. Resizing the
+  // window (e.g. narrowing it) without triggering a flip left the old,
+  // now-too-small radius in place — visible as an uncovered corner sliver
+  // in the previous section's color. Re-measure on every resize too, using
+  // the current (possibly unchanged) bubble position.
+  useEffect(() => {
+    const el = layerRef.current;
+    if (!el) return;
+
+    const observer = new ResizeObserver(() => {
+      setOrigin(computeOrigin(el, getSectionRevealState()));
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const handleTransitionEnd = (e) => {
     // Only the completion of a real *grow* (not a shrink, not some other

@@ -107,10 +107,23 @@
 }
 
 @media (max-width: 899px) {
+  /* Stacked layout only (Sortiment's inlineSlot): the centered card's open
+     body (1-line name + 2-line description) actually renders taller than
+     the old --cf-body-height reserved, so the card and nav buttons spilled
+     past this row's box into the next category card below. Sizing the
+     variable to the real clamped-content height fixes the overflow;
+     margin-top/margin-bottom below are picked (and re-verified by measuring
+     the live DOM) so the visible gap above and below the slide is a
+     pixel-equal 44px, half of the first symmetric-but-generous pass. */
+  .row {
+    margin-top: 20px;
+    margin-bottom: 44px;
+  }
+
   .viewport {
     --cf-width: 160px;
     --cf-gap: var(--space-4);
-    --cf-body-height: 110px;
+    --cf-body-height: 154px;
   }
   .overlayCard {
     width: 320px;
@@ -118,10 +131,16 @@
 }
 
 @media (max-width: 599px) {
+  .row {
+    /* Nav buttons shrink to 40px here, so their overhang below the
+       viewport drops from 24px to 20px — the bottom margin follows. */
+    margin-bottom: 40px;
+  }
+
   .viewport {
     --cf-width: 130px;
     --cf-gap: var(--space-4);
-    --cf-body-height: 100px;
+    --cf-body-height: 148px;
   }
   .navButton {
     width: 40px;

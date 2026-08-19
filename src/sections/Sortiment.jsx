@@ -11,7 +11,11 @@ import styles from "./Sortiment.module.css";
 const { index: SECTION_INDEX, color: SECTION_COLOR } = getSectionInfo("sortiment");
 
 export default function Sortiment() {
-  const [activeKey, setActiveKey] = useState(sortiment[0].key);
+  // Stacked (mobile/accordion) layout starts with every category collapsed —
+  // null means "none open" there. Desktop always needs one selected (the
+  // coverflow sits permanently below the row), so it falls back to the
+  // first category via activeKeyForDesktop below.
+  const [activeKey, setActiveKey] = useState(null);
   const [offset, setOffset] = useState(0);
   // Below this width the grid is a single column, so "under the box you
   // clicked" is a real, unambiguous position — the coverflow slots in right
@@ -19,14 +23,26 @@ export default function Sortiment() {
   // side), there's no single column to slot it under, so it stays below
   // the whole row like before.
   const isStacked = useMediaQuery("(max-width: 899px)");
+  const activeKeyForDesktop = activeKey ?? sortiment[0].key;
 
   const selectCategory = (key) => {
-    setActiveKey(key);
+    if (isStacked) {
+      // Clicking the already-open category collapses it again; picking a
+      // different one swaps which is open — never more than one at a time.
+      setActiveKey((current) => (current === key ? null : key));
+    } else {
+      setActiveKey(key);
+    }
     setOffset(0);
   };
 
   const coverflow = (
-    <CategoryCoverflow key={activeKey} categoryKey={activeKey} offset={offset} onOffsetChange={setOffset} />
+    <CategoryCoverflow
+      key={activeKeyForDesktop}
+      categoryKey={activeKeyForDesktop}
+      offset={offset}
+      onOffsetChange={setOffset}
+    />
   );
 
   return (
@@ -49,7 +65,7 @@ export default function Sortiment() {
               <IconCategory
                 icon={item.icon}
                 label={item.label}
-                active={item.key === activeKey}
+                active={item.key === (isStacked ? activeKey : activeKeyForDesktop)}
                 onSelect={() => selectCategory(item.key)}
               />
               {isStacked && item.key === activeKey && <li className={styles.inlineSlot}>{coverflow}</li>}

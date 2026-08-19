@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import styles from "./DancerMotif.module.css";
 
 /*
@@ -6,10 +7,12 @@ import styles from "./DancerMotif.module.css";
   (currentColor) so the same shape can render muted grey in the background
   and full brand yellow in the foreground.
 */
-export default function DancerMotif({ className = "" }) {
+const DancerMotif = forwardRef(function DancerMotif({ className = "", style }, ref) {
   return (
     <svg
+      ref={ref}
       className={`${styles.motif} ${className}`}
+      style={style}
       viewBox="0 0 1241 1268"
       aria-hidden="true"
       focusable="false"
@@ -19,4 +22,6 @@ export default function DancerMotif({ className = "" }) {
       />
     </svg>
   );
-}
+});
+
+export default DancerMotif;

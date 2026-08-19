@@ -61,7 +61,16 @@ export default function AppointmentPicker({ value, onChange }) {
       if (e.key === "Escape") handleClose();
     };
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+
+    // Locks background scroll while the calendar overlay is open — same
+    // mechanism as CategoryCoverflow's enlarged-card overlay, so the blurred
+    // page behind can't be scrolled or clicked through.
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = "";
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, draft]);
 

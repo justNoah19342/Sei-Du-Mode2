@@ -1,5 +1,35 @@
+/* Deliberately its own design language — Facebook's own palette/typography,
+   not the site's warm-amber/serif boutique system (tokens.css) — scoped as
+   local custom properties here rather than added to the shared tokens. */
 .section {
-  background: var(--color-surface-alt);
+  --fb-blue: #1877f2;
+  --fb-bg: #f0f2f5;
+  --fb-surface: #ffffff;
+  --fb-text: #050505;
+  --fb-text-muted: #65676b;
+  --fb-border: #ced0d4;
+  --fb-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --fb-radius-card: 12px;
+  --fb-radius-thumb: 8px;
+
+  background: var(--fb-bg);
+  font-family: var(--fb-font);
+}
+
+/* .eyebrow (global.css) and h2 (site-wide h1/h2/h3 rule) are shared across
+   every section — overridden only inside this one via a scoped descendant
+   selector, same technique as Sortiment.module.css's :global(#sortiment). */
+.section :global(.eyebrow) {
+  font-family: var(--fb-font);
+  color: var(--fb-blue);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.section h2 {
+  font-family: var(--fb-font);
+  color: var(--fb-text);
+  font-weight: 700;
 }
 
 .grid {
@@ -9,22 +39,22 @@
   margin-top: var(--space-7);
   /* Grid tracks stay their own width even when a track has no item in it, so
      with fewer than 5 videos the real cards simply sit left-aligned instead
-     of stretching to fill the row. */
+     of stretching to fill the row. The same "empty tracks keep their width"
+     mechanic is what lets every stacked card sit flush at column 1 pre-reveal
+     without the grid collapsing to one column. */
 }
 
 .card {
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  background: var(--fb-surface);
+  border: 1px solid var(--fb-border);
+  border-radius: var(--fb-radius-card);
   overflow: hidden;
-  transition: box-shadow 220ms var(--ease-reveal), transform 220ms var(--ease-reveal);
-  transition-delay: calc(var(--index, 0) * var(--stagger-step));
+  transition: border-color 220ms var(--ease-reveal);
 }
 
 .card:hover,
 .card:focus-within {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-4px);
+  border-color: var(--fb-blue);
 }
 
 .thumbLink {
@@ -34,7 +64,8 @@
 .thumb {
   position: relative;
   aspect-ratio: 9 / 16;
-  background: linear-gradient(135deg, var(--color-surface-alt), var(--color-secondary-dark, #ccc));
+  border-radius: var(--fb-radius-thumb) var(--fb-radius-thumb) 0 0;
+  background: linear-gradient(135deg, var(--fb-bg), #dadde1);
   background-size: cover;
   background-position: center;
   overflow: hidden;
@@ -68,8 +99,8 @@
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--fb-border);
   backdrop-filter: blur(4px);
-  box-shadow: var(--shadow-sm);
   transition: transform 200ms var(--ease-reveal);
 }
 
@@ -79,9 +110,7 @@
 }
 
 .playIcon {
-  /* Facebook's own brand blue — the one deliberate cool accent on an
-     otherwise warm-toned card, signalling the source at a glance. */
-  color: #1876f2;
+  color: var(--fb-blue);
 }
 
 @media (max-width: 899px) {

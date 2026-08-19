@@ -8,7 +8,7 @@ export const SECTION_COLORS = [
   { id: "marken", color: "#ffffff" },
   { id: "ueber-uns", color: "#FAF7F2" },
   { id: "sortiment", color: "#fcf0d4" },
-  { id: "social-media", color: "#fce6b3" },
+  { id: "social-media", color: "#1877F2" },
   { id: "kontakt", color: "#ffe3a1" },
   { id: "footer", color: "#ffe3a1" },
 ];

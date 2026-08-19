@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CaretLeft } from "@phosphor-icons/react";
 import Logo from "./Logo";
 import BlobShape from "./BlobShape";
@@ -14,10 +14,47 @@ const ids = navItems.map((item) => item.id);
 // Slight uneven rhythm between nav items — deliberate, not a uniform list.
 const offsets = [0, 10, -4, 14];
 
+function rectsOverlap(a, b) {
+  return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+}
+
 export default function Sidebar() {
   const activeId = useActiveSection(ids);
   const [collapsed, setCollapsed] = useState(false);
+  const [motifDimmed, setMotifDimmed] = useState(false);
   const handleNavClick = useNavigateToSection();
+  const motifRef = useRef(null);
+  const navListRef = useRef(null);
+  const callCtaRef = useRef(null);
+
+  // The dancer motif is pinned to the sidebar's bottom-left corner; on short
+  // viewports the nav list / call button can slide down far enough to
+  // overlap it. Measuring the actual boxes (rather than a fixed breakpoint)
+  // means it only dims when a real collision happens, and un-dims again the
+  // moment there's room.
+  useEffect(() => {
+    if (collapsed) {
+      setMotifDimmed(false);
+      return;
+    }
+
+    const checkOverlap = () => {
+      const motif = motifRef.current;
+      const navList = navListRef.current;
+      const callCta = callCtaRef.current;
+      if (!motif || !navList || !callCta) return;
+      const motifRect = motif.getBoundingClientRect();
+      setMotifDimmed(
+        rectsOverlap(motifRect, navList.getBoundingClientRect()) ||
+          rectsOverlap(motifRect, callCta.getBoundingClientRect())
+      );
+    };
+
+    checkOverlap();
+    const observer = new ResizeObserver(checkOverlap);
+    observer.observe(document.documentElement);
+    return () => observer.disconnect();
+  }, [collapsed, activeId]);
 
   return (
     <aside
@@ -35,11 +72,20 @@ export default function Sidebar() {
         <CaretLeft size={14} weight="bold" />
       </button>
 
+      {/* Rendered outside the collapsed guard (unlike the rest of the
+          sidebar content) so collapsing fades it out via CSS instead of an
+          abrupt unmount. Dimming is applied inline rather than as a CSS
+          class since it's a per-render computed value. */}
+      <DancerMotif
+        ref={motifRef}
+        className={styles.motif}
+        style={motifDimmed ? { opacity: 0.12, filter: "grayscale(1)" } : undefined}
+      />
+
       {!collapsed && (
         <>
           <BlobShape variant="glow" className={styles.blobGlow} />
           <BlobShape variant="primary" className={styles.blobTop} />
-          <DancerMotif className={styles.motif} />
 
           <div className={styles.logoWrap}>
             <Logo size="md" />
@@ -48,7 +94,7 @@ export default function Sidebar() {
           <hr className={styles.rule} />
 
           <nav aria-label="Hauptnavigation">
-            <ul className={styles.navList}>
+            <ul ref={navListRef} className={styles.navList}>
               {navItems.map((item, i) => (
                 <NavLink
                   key={item.id}
@@ -61,7 +107,7 @@ export default function Sidebar() {
             </ul>
           </nav>
 
-          <a href={contact.phoneHref} className={styles.callCta}>
+          <a ref={callCtaRef} href={contact.phoneHref} className={styles.callCta}>
             Jetzt anrufen
           </a>
         </>
