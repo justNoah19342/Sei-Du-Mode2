@@ -11,6 +11,30 @@ body {
   overflow-x: hidden;
 }
 
+/* Both the enlarged-product overlay (CategoryCoverflow) and the calendar
+   overlay (AppointmentPicker) toggle this class on body while open, and
+   already blur what's behind them via backdrop-filter on the overlay
+   itself. backdrop-filter isn't reliably supported/enabled on every
+   browser/GPU though (it can silently no-op, leaving just the dark tint
+   with a sharp, un-blurred background under it) — blurring the app's own
+   root here is a second, independent path to the same result that only
+   needs plain `filter`, supported far more broadly. The portaled overlay
+   itself lives outside #root (appended straight to <body>), so it stays
+   sharp while everything behind it blurs. */
+#root {
+  transition: filter 220ms var(--ease-reveal);
+}
+
+body.product-overlay-open #root {
+  filter: blur(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #root {
+    transition: none;
+  }
+}
+
 h1,
 h2,
 h3 {

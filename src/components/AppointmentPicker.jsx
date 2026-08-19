@@ -63,13 +63,17 @@ export default function AppointmentPicker({ value, onChange }) {
     window.addEventListener("keydown", onKeyDown);
 
     // Locks background scroll while the calendar overlay is open — same
-    // mechanism as CategoryCoverflow's enlarged-card overlay, so the blurred
-    // page behind can't be scrolled or clicked through.
+    // mechanism as CategoryCoverflow's enlarged-card overlay. Reuses that
+    // same "product-overlay-open" body class (hides chrome, and — via
+    // global.css — blurs #root as a backdrop-filter-independent fallback)
+    // so the blurred page behind can't be scrolled or clicked through.
     document.body.style.overflow = "hidden";
+    document.body.classList.add("product-overlay-open");
 
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = "";
+      document.body.classList.remove("product-overlay-open");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, draft]);
