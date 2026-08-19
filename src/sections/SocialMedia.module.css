@@ -42,6 +42,48 @@
   font-weight: 700;
 }
 
+.headingWrap {
+  position: relative;
+}
+
+.headingClone {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Same timing as SectionReveal.module.css's .circle — both are triggered
+     by the same store event in the same React commit, so a matching
+     transition here keeps the white wipe pixel-synced to the background
+     flood instead of drifting out of step with it. */
+  transition: clip-path 650ms cubic-bezier(0.22, 0.9, 0.32, 1);
+}
+
+.headingClone[data-revealed="false"] {
+  transition-duration: 260ms;
+  transition-timing-function: cubic-bezier(0.55, 0, 0.85, 0.35);
+}
+
+.headingClone[data-instant="true"] {
+  transition-duration: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .headingClone {
+    transition-duration: 0ms;
+  }
+}
+
+/* Higher in source order than .section :global(.eyebrow) / .section h2
+   above — same selector specificity, so this wins the cascade tie and
+   recolors only the clipped white clone, leaving the real heading beneath
+   it in its normal fb-blue/fb-text colors. */
+.headingClone :global(.eyebrow) {
+  color: #ffffff;
+}
+
+.headingClone h2 {
+  color: #ffffff;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -79,23 +121,6 @@
   background-size: cover;
   background-position: center;
   overflow: hidden;
-}
-
-.thumb::before {
-  /* Zoom lives on a pseudo-element (not the .thumb background itself) so the
-     scale transform doesn't fight the parent's aspect-ratio/overflow box. */
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: inherit;
-  background-size: cover;
-  background-position: center;
-  transition: transform 320ms var(--ease-reveal);
-}
-
-.card:hover .thumb::before,
-.card:focus-within .thumb::before {
-  transform: scale(1.06);
 }
 
 .playBadge {

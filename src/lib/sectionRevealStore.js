@@ -10,7 +10,11 @@ export const SECTION_COLORS = [
   { id: "sortiment", color: "#fcf0d4" },
   { id: "social-media", color: "#1877F2" },
   { id: "kontakt", color: "#ffe3a1" },
-  { id: "footer", color: "#ffe3a1" },
+  // mobileNoReveal: on mobile only, SectionColorBubble stops tracking once
+  // the bubble is fully inside this section — it hides instead of following
+  // the footer, and reappears only once you're back inside Kontakt. Desktop
+  // is unaffected (footer floods with its color there, same as ever).
+  { id: "footer", color: "#ffe3a1", mobileNoReveal: true },
 ];
 
 export function getSectionInfo(id) {

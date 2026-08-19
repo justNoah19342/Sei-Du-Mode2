@@ -1,4 +1,3 @@
-import { useLayoutEffect, useRef, useState } from "react";
 import SectionHeading from "../components/SectionHeading";
 import SectionReveal from "../components/SectionReveal";
 import { getSectionInfo } from "../lib/sectionRevealStore";
@@ -7,10 +6,28 @@ import styles from "./LogoCarousel.module.css";
 
 const { index: SECTION_INDEX, color: SECTION_COLOR } = getSectionInfo("marken");
 
-function PartnerCard({ partner, hidden, cardRef }) {
+// Fixed, generous copy count instead of runtime-measuring "just enough" for
+// the current viewport/zoom. That dynamic approach had to retarget the CSS
+// animation's shift value whenever the count changed — a running CSS
+// transition/animation doesn't restart when its target changes, it just
+// retargets from its current position, which visibly jumped or gapped the
+// strip. A copy count that never changes after mount needs a shift target
+// that never changes either (a constant -50%, i.e. exactly one half of the
+// track), so that whole bug class can't happen here anymore. 4 copies per
+// half (14 total, ~12,600px of logos) comfortably covers even a very wide
+// effective viewport, e.g. the ~5x-wider CSS viewport from zooming out to
+// 20% — the animation only ever shifts up to -50%, so it's specifically
+// *one half's* width that has to be at least as wide as the widest
+// realistic viewport, not the track's total width.
+const COPIES_PER_HALF = 7;
+// Scales with COPIES_PER_HALF so the time-per-logo stays constant — the
+// loop now travels COPIES_PER_HALF times the distance per cycle, so it
+// needs COPIES_PER_HALF times as long to look the same speed as before.
+const LOOP_DURATION_S = 36 * COPIES_PER_HALF;
+
+function PartnerCard({ partner, hidden }) {
   return (
     <a
-      ref={cardRef}
       className={styles.card}
       href={partner.url}
       target="_blank"
@@ -30,55 +47,6 @@ function PartnerCard({ partner, hidden, cardRef }) {
 }
 
 export default function LogoCarousel() {
-  const viewportRef = useRef(null);
-  // Plain object refs (not an array rebuilt every render) — the gap between
-  // copy 0 and copy 1's first card is exactly "one set's width, gap
-  // included", which is both the animation's loop distance and the unit
-  // used to work out how many copies are needed to cover the viewport.
-  // These two copies always exist once copies >= 2, and their key stays
-  // stable across re-renders, so the refs stay attached without ever
-  // bouncing through null — unlike an array reset in the render body, which
-  // raced the resize listener and intermittently read it as empty.
-  const firstCardRef = useRef(null);
-  const secondCardRef = useRef(null);
-
-  // Rendering only 2 copies (like a normal marquee) leaves gaps once the
-  // effective viewport is wider than two logo-sets — e.g. zoomed out to
-  // 20%, which turns into a 5x wider CSS viewport. So instead of a fixed
-  // duplicate count, copies and shiftPx are both measured from the live
-  // DOM and recalculated on resize/zoom, always keeping enough repeats to
-  // fill the screen edge-to-edge.
-  const [copies, setCopies] = useState(2);
-  const [shiftPx, setShiftPx] = useState(null);
-
-  useLayoutEffect(() => {
-    const measure = () => {
-      const first = firstCardRef.current;
-      const second = secondCardRef.current;
-      if (!first || !second) return;
-      const advance = second.getBoundingClientRect().left - first.getBoundingClientRect().left;
-      if (advance <= 0) return;
-      setShiftPx(advance);
-
-      const viewportWidth = viewportRef.current?.getBoundingClientRect().width ?? window.innerWidth;
-      // +1 extra copy so the trailing edge is always covered mid-loop, not
-      // just at rest.
-      const needed = Math.max(2, Math.ceil(viewportWidth / advance) + 1);
-      setCopies((current) => (current === needed ? current : needed));
-    };
-
-    measure();
-
-    const resizeObserver = new ResizeObserver(measure);
-    if (viewportRef.current) resizeObserver.observe(viewportRef.current);
-    window.addEventListener("resize", measure);
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener("resize", measure);
-    };
-  }, [copies]);
-
   return (
     <section id="marken" className={`${styles.section} section`}>
       <SectionReveal index={SECTION_INDEX} color={SECTION_COLOR} />
@@ -90,27 +58,12 @@ export default function LogoCarousel() {
         />
       </div>
 
-      <div className={styles.viewport} ref={viewportRef}>
-        <div
-          className={styles.track}
-          style={shiftPx ? { "--marquee-shift": `${shiftPx}px` } : undefined}
-        >
-          {Array.from({ length: copies }, (_, copyIndex) =>
-            partners.map((partner, partnerIndex) => {
-              let cardRef;
-              if (partnerIndex === 0) {
-                if (copyIndex === 0) cardRef = firstCardRef;
-                else if (copyIndex === 1) cardRef = secondCardRef;
-              }
-              return (
-                <PartnerCard
-                  key={`${partner.name}-${copyIndex}`}
-                  partner={partner}
-                  hidden={copyIndex > 0}
-                  cardRef={cardRef}
-                />
-              );
-            })
+      <div className={styles.viewport}>
+        <div className={styles.track} style={{ animationDuration: `${LOOP_DURATION_S}s` }}>
+          {Array.from({ length: COPIES_PER_HALF * 2 }, (_, copyIndex) =>
+            partners.map((partner) => (
+              <PartnerCard key={`${partner.name}-${copyIndex}`} partner={partner} hidden={copyIndex > 0} />
+            ))
           )}
         </div>
       </div>

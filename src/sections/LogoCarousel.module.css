@@ -79,13 +79,12 @@
     transform: translateX(0);
   }
   to {
-    /* --marquee-shift is measured in JS as the pixel distance from one
-       rendered copy's first card to the next copy's first card (one set's
-       width, gap included) — using that instead of a fixed -50% keeps the
-       loop seamless no matter how many copies are rendered to cover the
-       viewport. The 50% fallback matches the old default (2 copies)
-       before the first measurement lands. */
-    transform: translateX(calc(-1 * var(--marquee-shift, 50%)));
+    /* The track always renders two identical halves (see COPIES_PER_HALF
+       in LogoCarousel.jsx), so shifting by exactly half its own width
+       always lands on identical content — a seamless loop with no JS
+       measurement needed, and no risk of a running transition retargeting
+       mid-flight the way a JS-measured custom property could. */
+    transform: translateX(-50%);
   }
 }
 
