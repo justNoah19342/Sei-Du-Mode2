@@ -43,22 +43,18 @@
 }
 
 .grid {
-  /* Flex, not CSS Grid — a Netflix-style hover-grow needs neighbors to
-     actually cede space (flex-grow redistributing the row), not just an
-     overlapping transform: scale(). position:relative anchors each card's
-     pre-reveal position:absolute stack (see VideoCard in SocialMedia.jsx). */
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
   gap: var(--space-5);
   margin-top: var(--space-7);
+  /* Grid tracks stay their own width even when a track has no item in it, so
+     with fewer than 5 videos the real cards simply sit left-aligned instead
+     of stretching to fill the row. The same "empty tracks keep their width"
+     mechanic is what lets every stacked card sit flush at column 1 pre-reveal
+     without the grid collapsing to one column. */
 }
 
 .card {
-  /* flex-basis:0 + flex-grow:1 divides the row evenly among however many
-     cards exist, same effect as the old grid's repeat(5, 1fr) for 5 videos. */
-  flex: 1 1 0%;
-  min-width: 0;
   background: var(--fb-surface);
   border: 1px solid var(--fb-border);
   border-radius: var(--fb-radius-card);
@@ -70,11 +66,6 @@
 .card:focus-within {
   border-color: var(--fb-blue);
 }
-
-/* The Netflix-style hover-grow itself is driven by React state → an inline
-   flexGrow style in SocialMedia.jsx, not CSS — Framer Motion's layout prop
-   only detects a box-size change around a React render, so a pure CSS
-   :hover resize it never rendered for was invisible to it. */
 
 .thumbLink {
   display: block;
@@ -133,18 +124,8 @@
 }
 
 @media (max-width: 899px) {
-  /* .grid itself is only ever visible here as the loading skeleton — real
-     loaded videos use VideoCoverflow below 900px instead (see
-     SocialMedia.jsx). flex-basis forces a 2-up wrap for that skeleton;
-     flex-grow:1 still divides each row's leftover space evenly. */
-  .card {
-    flex-basis: calc(50% - var(--space-5) / 2);
-  }
-}
-
-@media (max-width: 599px) {
-  .card {
-    flex-basis: 100%;
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

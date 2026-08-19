@@ -15,48 +15,38 @@ const ENTRANCE_DURATION = 0.6;
 // Mirrors --ease-reveal's curve — hardcoded because Framer Motion transition
 // configs are plain JS values, not CSS custom properties.
 const ENTRANCE_EASE = [0.25, 0.46, 0.45, 0.94];
-// Same spring config MobileWerteStack.jsx already uses elsewhere in this
-// codebase — reused here (instead of inventing new numbers) for the
-// Netflix-style hover-grow, so every "lively" motion on the site shares one
-// feel. Spring overshoot (vs. a flat ease-out) is what reads as alive rather
-// than stiff — a plain duration/ease curve never overshoots its target.
-const HOVER_TRANSITION = { type: "spring", stiffness: 300, damping: 22 };
 
-function VideoCard({ video, revealed, growth, onHoverStart, onHoverEnd }) {
-  // Tracks whether the one-time scroll entrance has finished — after that,
-  // layout changes (hover grow/shrink, a resize across breakpoints) use the
-  // livelier spring instead of replaying the slower entrance slide.
+function VideoCard({ video, revealed }) {
+  // Tracks whether the one-time scroll entrance has finished, so a later
+  // layout change (e.g. resizing the window across a grid breakpoint) snaps
+  // instantly instead of replaying the slide — layout stays "live" for the
+  // component's whole lifetime otherwise.
   const [hasSettled, setHasSettled] = useState(false);
   const isStacked = !revealed;
-
-  // The Netflix-style grow/shrink has to be driven by React state (flowing
-  // into this inline flexGrow), not a plain CSS :hover rule — Framer
-  // Motion's layout prop only detects a box-size change by re-measuring
-  // around a React render, so a CSS-only resize it never rendered for was
-  // silently invisible to it (confirmed: computed flex-grow updated, but
-  // the box itself never resized until this was wired through state).
-  const style = isStacked
-    ? { position: "absolute", left: 0, top: 0, width: "20%", pointerEvents: "none" }
-    : { flexGrow: growth };
 
   return (
     <motion.li
       layout
       className={styles.card}
-      style={style}
-      transition={hasSettled ? HOVER_TRANSITION : { duration: ENTRANCE_DURATION, ease: ENTRANCE_EASE }}
+      style={isStacked ? { gridColumn: 1, gridRow: 1, pointerEvents: "none" } : undefined}
+      transition={hasSettled ? { duration: 0 } : { duration: ENTRANCE_DURATION, ease: ENTRANCE_EASE }}
       onLayoutAnimationComplete={() => setHasSettled(true)}
-      onHoverStart={onHoverStart}
-      onHoverEnd={onHoverEnd}
-      onFocus={onHoverStart}
-      onBlur={onHoverEnd}
     >
-      <a
+      {/* The scale-on-hover lives on this inner motion.a, not the outer
+         motion.li — the li's layout prop already owns its own transform for
+         the entrance FLIP, so a transform (CSS or whileHover) placed there
+         gets silently overridden. This element also receives real focus
+         itself (rather than needing :focus-within on an ancestor), which is
+         what whileFocus actually listens for. */}
+      <motion.a
         href={video.permalinkUrl || undefined}
         target="_blank"
         rel="noopener noreferrer"
         className={styles.thumbLink}
         aria-label="Facebook-Video ansehen"
+        whileHover={{ scale: 1.03 }}
+        whileFocus={{ scale: 1.03 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
       >
         <div
           className={styles.thumb}
@@ -66,7 +56,7 @@ function VideoCard({ video, revealed, growth, onHoverStart, onHoverEnd }) {
             <Play className={styles.playIcon} size={18} weight="fill" />
           </span>
         </div>
-      </a>
+      </motion.a>
     </motion.li>
   );
 }
@@ -104,27 +94,11 @@ function FacebookVideoRow({ revealed, isStacked }) {
     return <VideoCoverflow videos={videos} />;
   }
 
-  return <VideoGrid videos={videos} revealed={revealed} />;
-}
-
-function VideoGrid({ videos, revealed }) {
-  const [hoveredId, setHoveredId] = useState(null);
-
   return (
     <ul className={styles.grid}>
-      {videos.map((video) => {
-        const growth = hoveredId === null ? 1 : hoveredId === video.id ? 1.9 : 0.82;
-        return (
-          <VideoCard
-            key={video.id}
-            video={video}
-            revealed={revealed}
-            growth={growth}
-            onHoverStart={() => setHoveredId(video.id)}
-            onHoverEnd={() => setHoveredId((current) => (current === video.id ? null : current))}
-          />
-        );
-      })}
+      {videos.map((video) => (
+        <VideoCard key={video.id} video={video} revealed={revealed} />
+      ))}
     </ul>
   );
 }
