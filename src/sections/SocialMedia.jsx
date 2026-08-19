@@ -3,7 +3,9 @@ import { motion, useInView, useReducedMotion } from "framer-motion";
 import { Play } from "@phosphor-icons/react";
 import SectionHeading from "../components/SectionHeading";
 import SectionReveal from "../components/SectionReveal";
+import VideoCoverflow from "../components/VideoCoverflow";
 import { useFacebookVideos } from "../hooks/useFacebookVideos";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { getSectionInfo } from "../lib/sectionRevealStore";
 import styles from "./SocialMedia.module.css";
 
@@ -50,7 +52,7 @@ function VideoCard({ video, revealed }) {
   );
 }
 
-function FacebookVideoRow({ revealed }) {
+function FacebookVideoRow({ revealed, isStacked }) {
   const { status, videos } = useFacebookVideos();
 
   // "not configured" / errored / empty all collapse to the same "nothing to
@@ -60,15 +62,34 @@ function FacebookVideoRow({ revealed }) {
     return null;
   }
 
+  if (status === "loading") {
+    // Same skeleton grid regardless of breakpoint — a brief, content-agnostic
+    // placeholder doesn't need the swipe carousel's interactivity.
+    return (
+      <ul className={styles.grid}>
+        {Array.from({ length: SKELETON_COUNT }, (_, i) => (
+          <li key={i} className={styles.card}>
+            <div className={styles.thumb} />
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  // ≤899px: horizontal swipe carousel (same touch+arrow mechanism as the
+  // Sortiment section's CategoryCoverflow) instead of a cramped 1-/2-column
+  // grid. The stack→slide grid entrance below is desktop-only, so the
+  // carousel never needs a "revealed" gate — it has its own always-on
+  // touch/click interaction instead of a one-time scroll reveal.
+  if (isStacked) {
+    return <VideoCoverflow videos={videos} />;
+  }
+
   return (
     <ul className={styles.grid}>
-      {status === "loading"
-        ? Array.from({ length: SKELETON_COUNT }, (_, i) => (
-            <li key={i} className={styles.card}>
-              <div className={styles.thumb} />
-            </li>
-          ))
-        : videos.map((video) => <VideoCard key={video.id} video={video} revealed={revealed} />)}
+      {videos.map((video) => (
+        <VideoCard key={video.id} video={video} revealed={revealed} />
+      ))}
     </ul>
   );
 }
@@ -86,13 +107,16 @@ export default function SocialMedia() {
   // section already scrolled past should render them straight into their
   // final position, not stack-then-slide late.
   const revealed = isInView || prefersReducedMotion;
+  // Matches CategoryCoverflow's own stacked/desktop split in Sortiment.jsx —
+  // below this width the swipe carousel takes over from the grid.
+  const isStacked = useMediaQuery("(max-width: 899px)");
 
   return (
     <section id="social-media" ref={sectionRef} className={`${styles.section} section`}>
       <SectionReveal index={SECTION_INDEX} color={SECTION_COLOR} />
       <div className="container">
         <SectionHeading eyebrow="Facebook" title="Unser Social Media" align="center" />
-        <FacebookVideoRow revealed={revealed} />
+        <FacebookVideoRow revealed={revealed} isStacked={isStacked} />
       </div>
     </section>
   );

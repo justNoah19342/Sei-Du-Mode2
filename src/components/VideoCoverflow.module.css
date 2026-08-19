@@ -1,0 +1,117 @@
+/* Mobile/tablet (≤899px) swipe carousel for the Facebook video cards —
+   same touch-swipe + depth-fade + arrow-button mechanism as the Sortiment
+   section's CategoryCoverflow, but the Facebook-brand colors (--fb-*) come
+   from the ancestor .section in SocialMedia.module.css via plain CSS
+   inheritance, so this stays visually part of that section's own look
+   rather than the site's warm-amber system. */
+.row {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-7);
+  margin-bottom: 44px;
+}
+
+.viewport {
+  --cf-width: 200px;
+  --cf-gap: var(--space-4);
+  position: relative;
+  width: var(--cf-width);
+  aspect-ratio: 9 / 16;
+  touch-action: pan-y;
+}
+
+.slide {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--cf-width);
+  aspect-ratio: 9 / 16;
+  transition: opacity 380ms var(--ease-reveal), transform 380ms var(--ease-reveal);
+}
+
+.thumbLink {
+  display: block;
+  height: 100%;
+}
+
+.thumb {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--fb-radius-card, 12px);
+  background: linear-gradient(135deg, var(--fb-bg, #f0f2f5), #dadde1);
+  background-size: cover;
+  background-position: center;
+  border: 1px solid var(--fb-border, #ced0d4);
+  overflow: hidden;
+}
+
+.playBadge {
+  position: absolute;
+  left: var(--space-3);
+  bottom: var(--space-3);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--fb-border, #ced0d4);
+  backdrop-filter: blur(4px);
+}
+
+.playIcon {
+  color: var(--fb-blue, #1877f2);
+}
+
+/* Meta's own utility-button spec (see design-md/meta/DESIGN.md
+   button-icon-circular) uses 40×40px circular carousel arrows — matched
+   here instead of the warm-amber shadow-glow treatment CategoryCoverflow
+   uses elsewhere, to stay inside this section's own Facebook palette. */
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--fb-surface, #ffffff);
+  color: var(--fb-blue, #1877f2);
+  border: 1px solid var(--fb-border, #ced0d4);
+  z-index: 20;
+  transition: background 180ms var(--ease-reveal), transform 180ms var(--ease-reveal);
+}
+
+.navButton.prev {
+  left: 4px;
+}
+
+.navButton.next {
+  right: 4px;
+}
+
+.navButton:hover {
+  background: var(--fb-bg, #f0f2f5);
+}
+
+.navButton:focus-visible {
+  outline: 2px solid var(--fb-blue, #1877f2);
+  outline-offset: 2px;
+}
+
+@media (max-width: 599px) {
+  .viewport {
+    --cf-width: 160px;
+    --cf-gap: var(--space-3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide {
+    transition: none;
+  }
+}
