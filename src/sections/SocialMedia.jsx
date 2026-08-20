@@ -70,7 +70,9 @@ function VideoCard({ video, revealed }) {
 // the flood hasn't (per pixel, mid-word if the wipe is mid-transition).
 function FacebookHeading() {
   const wrapRef = useRef(null);
-  const { revealed, instant, origin } = useSectionRevealCircle(SECTION_INDEX, wrapRef);
+  const { revealed, instant, origin } = useSectionRevealCircle(SECTION_INDEX, wrapRef, {
+    collapseOnHide: true,
+  });
   const clipPath = `circle(${origin.r}px at ${origin.x}px ${origin.y}px)`;
 
   return (

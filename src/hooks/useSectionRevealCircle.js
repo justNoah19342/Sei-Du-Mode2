@@ -27,7 +27,19 @@ function computeOrigin(el, state) {
 // their *own* ref, so each gets an origin already local to its own box,
 // even though they're reading the same underlying bubble position/section
 // index from the store.
-export function useSectionRevealCircle(index, elRef) {
+//
+// collapseOnHide: SectionReveal's own circle stays sized at the full
+// (always-large) computeOrigin() radius in both directions and instead
+// relies on its CSS `transform: scale(0)` to disappear — the box itself
+// never shrinks, only its scale does, which is what makes the shrink
+// animate smoothly. A clip-path consumer (FacebookHeading's white heading
+// clone) has no such scale step: the clip-path radius *is* the animated
+// value. Reusing the same always-large radius for its "hidden" target
+// left the clip permanently covering the heading (r never came back down
+// to 0), so pass collapseOnHide to target r:0 (keeping the fresh x/y so it
+// still collapses toward wherever the bubble currently is) whenever this
+// section un-reveals.
+export function useSectionRevealCircle(index, elRef, { collapseOnHide = false } = {}) {
   const wasRevealedRef = useRef(computeRevealed(index));
   const [revealed, setRevealed] = useState(() => wasRevealedRef.current);
   // Only true for the very first (pre-paint) correction — see the comment
@@ -45,7 +57,10 @@ export function useSectionRevealCircle(index, elRef) {
       if (nextRevealed === wasRevealedRef.current) return;
 
       const el = elRef.current;
-      if (el) setOrigin(computeOrigin(el, state));
+      if (el) {
+        const computed = computeOrigin(el, state);
+        setOrigin(collapseOnHide && !nextRevealed ? { ...computed, r: 0 } : computed);
+      }
 
       setInstant(isInitialSync);
       wasRevealedRef.current = nextRevealed;
