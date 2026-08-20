@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { CaretLeft, CaretRight } from "@phosphor-icons/react";
 import ProductCard from "./ProductCard";
 import { useCategoryProducts } from "../hooks/useCategoryProducts";
+import { useZoomCompensation } from "../hooks/useZoomCompensation";
 import styles from "./CategoryCoverflow.module.css";
 
 // Fixed opacity/scale steps by distance from the centered slide — only the
@@ -42,6 +43,7 @@ function buildSlots(n, offset) {
 export default function CategoryCoverflow({ categoryKey, offset, onOffsetChange }) {
   const { status, products } = useCategoryProducts(categoryKey);
   const [isEnlarged, setIsEnlarged] = useState(false);
+  const zoomScale = useZoomCompensation();
 
   const n = products.length;
 
@@ -164,10 +166,12 @@ export default function CategoryCoverflow({ categoryKey, offset, onOffsetChange 
       {isEnlarged &&
         createPortal(
           <div className={styles.overlay} onClick={() => setIsEnlarged(false)}>
-            <div className={styles.overlayCard} onClick={(e) => e.stopPropagation()}>
-              <ul className={styles.slideList}>
-                <ProductCard product={centerProduct} expanded large />
-              </ul>
+            <div className={styles.zoomLock} style={{ transform: `scale(${zoomScale})` }}>
+              <div className={styles.overlayCard} onClick={(e) => e.stopPropagation()}>
+                <ul className={styles.slideList}>
+                  <ProductCard product={centerProduct} expanded large />
+                </ul>
+              </div>
             </div>
           </div>,
           document.body

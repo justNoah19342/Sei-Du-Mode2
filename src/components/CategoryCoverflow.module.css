@@ -80,6 +80,12 @@
   animation: overlayFade 220ms var(--ease-reveal);
 }
 
+.zoomLock {
+  /* Counteracts browser zoom so the card below always renders at the
+     on-screen size it had when it first opened — see useZoomCompensation. */
+  transform-origin: center;
+}
+
 .overlayCard {
   width: 440px;
   max-width: 90vw;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { CalendarBlank, CaretLeft, CaretRight } from "@phosphor-icons/react";
+import { useZoomCompensation } from "../hooks/useZoomCompensation";
 import styles from "./AppointmentPicker.module.css";
 
 const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
@@ -49,6 +50,7 @@ function defaultDraft(value) {
 
 export default function AppointmentPicker({ value, onChange }) {
   const [isOpen, setIsOpen] = useState(false);
+  const zoomScale = useZoomCompensation();
   const [draft, setDraft] = useState(() => defaultDraft(value));
   const [viewMonth, setViewMonth] = useState(() => {
     const base = defaultDraft(value).date;
@@ -123,68 +125,70 @@ export default function AppointmentPicker({ value, onChange }) {
       {isOpen &&
         createPortal(
           <div className={styles.overlay} onClick={handleClose}>
-            <div className={styles.overlayCard} onClick={(e) => e.stopPropagation()}>
-              <div className={styles.calendarHeader}>
-                <button type="button" className={styles.navBtn} onClick={() => changeMonth(-1)} aria-label="Vorheriger Monat">
-                  <CaretLeft size={16} weight="bold" />
-                </button>
-                <span>{viewMonth.toLocaleDateString("de-DE", { month: "long", year: "numeric" })}</span>
-                <button type="button" className={styles.navBtn} onClick={() => changeMonth(1)} aria-label="Nächster Monat">
-                  <CaretRight size={16} weight="bold" />
-                </button>
-              </div>
+            <div className={styles.zoomLock} style={{ transform: `scale(${zoomScale})` }}>
+              <div className={styles.overlayCard} onClick={(e) => e.stopPropagation()}>
+                <div className={styles.calendarHeader}>
+                  <button type="button" className={styles.navBtn} onClick={() => changeMonth(-1)} aria-label="Vorheriger Monat">
+                    <CaretLeft size={16} weight="bold" />
+                  </button>
+                  <span>{viewMonth.toLocaleDateString("de-DE", { month: "long", year: "numeric" })}</span>
+                  <button type="button" className={styles.navBtn} onClick={() => changeMonth(1)} aria-label="Nächster Monat">
+                    <CaretRight size={16} weight="bold" />
+                  </button>
+                </div>
 
-              <div className={styles.weekdays}>
-                {WEEKDAYS.map((day) => (
-                  <span key={day}>{day}</span>
-                ))}
-              </div>
+                <div className={styles.weekdays}>
+                  {WEEKDAYS.map((day) => (
+                    <span key={day}>{day}</span>
+                  ))}
+                </div>
 
-              <div className={styles.days}>
-                {cells.map((day, i) => {
-                  if (!day) return <span key={`blank-${i}`} />;
-                  const isPast = day < today;
-                  const isSelected = isSameDay(day, draft.date);
-                  const isToday = isSameDay(day, today);
-                  const dayClass = [
-                    styles.day,
-                    isSelected ? styles.daySelected : "",
-                    !isSelected && isToday ? styles.dayToday : "",
-                    isPast ? styles.dayDisabled : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ");
-                  return (
-                    <button
-                      key={day.toISOString()}
-                      type="button"
-                      className={dayClass}
-                      disabled={isPast}
-                      onClick={() => setDraft((d) => ({ ...d, date: day }))}
-                    >
-                      {day.getDate()}
-                    </button>
-                  );
-                })}
-              </div>
+                <div className={styles.days}>
+                  {cells.map((day, i) => {
+                    if (!day) return <span key={`blank-${i}`} />;
+                    const isPast = day < today;
+                    const isSelected = isSameDay(day, draft.date);
+                    const isToday = isSameDay(day, today);
+                    const dayClass = [
+                      styles.day,
+                      isSelected ? styles.daySelected : "",
+                      !isSelected && isToday ? styles.dayToday : "",
+                      isPast ? styles.dayDisabled : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ");
+                    return (
+                      <button
+                        key={day.toISOString()}
+                        type="button"
+                        className={dayClass}
+                        disabled={isPast}
+                        onClick={() => setDraft((d) => ({ ...d, date: day }))}
+                      >
+                        {day.getDate()}
+                      </button>
+                    );
+                  })}
+                </div>
 
-              <div className={styles.times}>
-                <label className={styles.timeField}>
-                  <span>Start</span>
-                  <input
-                    type="time"
-                    value={draft.start}
-                    onChange={(e) => setDraft((d) => ({ ...d, start: e.target.value }))}
-                  />
-                </label>
-                <label className={styles.timeField}>
-                  <span>Ende</span>
-                  <input
-                    type="time"
-                    value={draft.end}
-                    onChange={(e) => setDraft((d) => ({ ...d, end: e.target.value }))}
-                  />
-                </label>
+                <div className={styles.times}>
+                  <label className={styles.timeField}>
+                    <span>Start</span>
+                    <input
+                      type="time"
+                      value={draft.start}
+                      onChange={(e) => setDraft((d) => ({ ...d, start: e.target.value }))}
+                    />
+                  </label>
+                  <label className={styles.timeField}>
+                    <span>Ende</span>
+                    <input
+                      type="time"
+                      value={draft.end}
+                      onChange={(e) => setDraft((d) => ({ ...d, end: e.target.value }))}
+                    />
+                  </label>
+                </div>
               </div>
             </div>
           </div>,
