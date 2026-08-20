@@ -20,11 +20,6 @@
   animation: marquee 28s linear infinite;
 }
 
-.track:hover,
-.track:focus-within {
-  animation-play-state: paused;
-}
-
 .item {
   flex: 0 0 auto;
   padding-block: var(--space-2);
