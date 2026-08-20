@@ -66,6 +66,20 @@
   transition-duration: 0ms;
 }
 
+/* Belt-and-suspenders for the pristine pre-interaction state (mount, or an
+   instant jump that lands un-revealed): some WebKit builds fail to actually
+   clip a `circle(0px at 0% 0%)` path (the 0/0 coordinates apparently hit a
+   degenerate case where the browser paints the full box instead of nothing),
+   leaving the white clone visibly covering the real heading until the first
+   real clip-path value change forces a proper repaint. opacity is a
+   completely separate paint step from clip-path, so it hides the clone
+   regardless of whether the browser's clip-path implementation cooperates —
+   safe to add only for the instant+hidden combo since nothing is
+   transitioning at that moment (transition-duration is already 0ms there). */
+.headingClone[data-revealed="false"][data-instant="true"] {
+  opacity: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .headingClone {
     transition-duration: 0ms;
