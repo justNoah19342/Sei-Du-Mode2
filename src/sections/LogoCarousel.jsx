@@ -15,12 +15,18 @@ const { index: SECTION_INDEX, color: SECTION_COLOR } = getSectionInfo("marken");
 // strip. A copy count that never changes after mount needs a shift target
 // that never changes either (a constant -50%, i.e. exactly one half of the
 // track), so that whole bug class can't happen here anymore. 4 copies per
-// half (14 total, ~12,600px of logos) comfortably covers even a very wide
+// half (8 total, ~6,000px of logos) comfortably covers even a very wide
 // effective viewport, e.g. the ~5x-wider CSS viewport from zooming out to
 // 20% — the animation only ever shifts up to -50%, so it's specifically
 // *one half's* width that has to be at least as wide as the widest
 // realistic viewport, not the track's total width.
-const COPIES_PER_HALF = 7;
+// Kept deliberately smaller than that "generous" ceiling would allow: at 7
+// copies (~21,000px total) the strip got long enough that some GPUs visibly
+// dropped tiles mid-scroll — logos vanishing partway through the loop and
+// only reappearing once the translateX value came back down near 0. Large
+// transform distances are a known compositor tiling edge case; keeping the
+// peak distance smaller avoids it.
+const COPIES_PER_HALF = 4;
 // Scales with COPIES_PER_HALF so the time-per-logo stays constant — the
 // loop now travels COPIES_PER_HALF times the distance per cycle, so it
 // needs COPIES_PER_HALF times as long to look the same speed as before.

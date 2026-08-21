@@ -37,14 +37,20 @@ export default function Hero() {
       </video>
       <BlobShape variant="glow" className={styles.blobGlow} />
 
+      {/* Below 1557px: original behaviour — pinned to the hero section
+         itself, scaling with the viewport like before. Hidden at/above
+         1557px in favor of the text-anchored pair below. */}
+      <DancerMotif className={`${styles.motifLeft} ${styles.motifLeftNarrow}`} />
+      <DancerMotif className={`${styles.motifRight} ${styles.motifRightNarrow}`} />
+
       <div className={`container ${styles.inner}`}>
-        {/* Anchored to this text container (not the hero section) so their
-           distance to the headline stays constant — the container has a
-           capped max-width and centers once the viewport outgrows it, so
-           positioning against the hero itself made the gap keep growing on
-           wide screens. */}
-        <DancerMotif className={styles.motifLeft} />
-        <DancerMotif className={styles.motifRight} />
+        {/* At/above 1557px: anchored to this text container (not the hero
+           section) so their distance to the headline stays constant instead
+           of drifting as the viewport grows, and positioned further out so
+           they sit around the text rather than under it (z-index puts them
+           behind the text). Hidden below 1557px in favor of the pair above. */}
+        <DancerMotif className={`${styles.motifLeft} ${styles.motifLeftWide}`} />
+        <DancerMotif className={`${styles.motifRight} ${styles.motifRightWide}`} />
 
         <span className="eyebrow">SEI DU Mode · {address.city}</span>
         <h1 className={styles.headline}>

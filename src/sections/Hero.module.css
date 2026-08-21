@@ -26,8 +26,6 @@
 .motifLeft {
   width: 480px;
   height: 490px;
-  top: -4%;
-  left: -12%;
   color: var(--color-text-muted);
   opacity: 0.16;
   transform: rotate(-6deg);
@@ -36,9 +34,50 @@
 .motifRight {
   width: 380px;
   height: 388px;
+  color: var(--color-primary);
+}
+
+/* Below 1557px: pinned to the hero section itself, scaling with it — the
+   original behaviour, kept as-is. */
+.motifLeftNarrow {
+  top: -4%;
+  left: -12%;
+}
+
+.motifRightNarrow {
   bottom: 10px;
   right: 2%;
-  color: var(--color-primary);
+}
+
+/* At/above 1557px: anchored to the text container instead (see the .inner
+   nesting in Hero.jsx) so the gap to the headline stays constant, pushed
+   further out so they sit around the text instead of under it, and behind
+   the text (negative z-index — a position:absolute element otherwise paints
+   above static in-flow text regardless of z-index:0/auto or DOM order). */
+.motifLeftWide {
+  top: -4%;
+  left: -85%;
+  z-index: -1;
+}
+
+.motifRightWide {
+  bottom: 10px;
+  right: -65%;
+  z-index: -1;
+}
+
+@media (min-width: 1557px) {
+  .motifLeftNarrow,
+  .motifRightNarrow {
+    display: none;
+  }
+}
+
+@media (max-width: 1556px) {
+  .motifLeftWide,
+  .motifRightWide {
+    display: none;
+  }
 }
 
 .inner {
@@ -114,11 +153,11 @@
     font-size: 1.15rem;
   }
 
-  .motifRight {
+  .motifRightNarrow {
     display: none;
   }
 
-  .motifLeft {
+  .motifLeftNarrow {
     left: auto;
     right: -18%;
     top: -2%;
