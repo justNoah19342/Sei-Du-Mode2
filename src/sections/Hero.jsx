@@ -36,10 +36,16 @@ export default function Hero() {
         <source src={BG_VIDEOS[videoIndex]} type="video/mp4" />
       </video>
       <BlobShape variant="glow" className={styles.blobGlow} />
-      <DancerMotif className={styles.motifLeft} />
-      <DancerMotif className={styles.motifRight} />
 
       <div className={`container ${styles.inner}`}>
+        {/* Anchored to this text container (not the hero section) so their
+           distance to the headline stays constant — the container has a
+           capped max-width and centers once the viewport outgrows it, so
+           positioning against the hero itself made the gap keep growing on
+           wide screens. */}
+        <DancerMotif className={styles.motifLeft} />
+        <DancerMotif className={styles.motifRight} />
+
         <span className="eyebrow">SEI DU Mode · {address.city}</span>
         <h1 className={styles.headline}>
           Mode, in der du <em>ganz du selbst</em> bist.
