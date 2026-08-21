@@ -2,15 +2,16 @@ import { useState } from "react";
 import BlobShape from "../components/BlobShape";
 import DancerMotif from "../components/DancerMotif";
 import { contact, selbstbeschreibung, address } from "../data/content";
-import videoSeidenstoff from "../assets/hintergrundvideos/web/seidenstoff.mp4";
 import videoHerrenjacken from "../assets/hintergrundvideos/web/herrenjacken.mp4";
-import videoHosen from "../assets/hintergrundvideos/web/hosen.mp4";
+import videoKleidungsstaender from "../assets/hintergrundvideos/web/kleidungsstaender-schwenk.mp4";
+import videoPullover from "../assets/hintergrundvideos/web/pullover.mp4";
+import videoHemden from "../assets/hintergrundvideos/web/hemden.mp4";
 import styles from "./Hero.module.css";
 
-// Curated down from the client's stock footage to the 3 clips that read as
-// fashion without featuring a person (see chat decision). Compressed
-// versions live in hintergrundvideos/web/; originals are untouched.
-const BG_VIDEOS = [videoSeidenstoff, videoHerrenjacken, videoHosen];
+// herrenjacken.mp4 is the one clip kept from the original batch; the other
+// three are the client's newer replacement footage. Compressed versions live
+// in hintergrundvideos/web/; originals are untouched.
+const BG_VIDEOS = [videoHerrenjacken, videoKleidungsstaender, videoPullover, videoHemden];
 
 export default function Hero() {
   const [videoIndex, setVideoIndex] = useState(0);
