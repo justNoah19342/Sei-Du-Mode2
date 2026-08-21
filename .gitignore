@@ -27,3 +27,7 @@ dist-ssr
 *.sln
 *.sw?
 .dev.vars
+
+# Raw client-supplied stock footage (large, unused by the build) — only the
+# compressed hintergrundvideos/web/*.mp4 versions are actually imported.
+src/assets/hintergrundvideos/*.mp4

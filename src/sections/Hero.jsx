@@ -1,15 +1,39 @@
+import { useState } from "react";
 import BlobShape from "../components/BlobShape";
 import DancerMotif from "../components/DancerMotif";
 import { contact, selbstbeschreibung, address } from "../data/content";
+import videoSeidenstoff from "../assets/hintergrundvideos/web/seidenstoff.mp4";
+import videoHerrenjacken from "../assets/hintergrundvideos/web/herrenjacken.mp4";
+import videoHosen from "../assets/hintergrundvideos/web/hosen.mp4";
 import styles from "./Hero.module.css";
 
+// Curated down from the client's stock footage to the 3 clips that read as
+// fashion without featuring a person (see chat decision). Compressed
+// versions live in hintergrundvideos/web/; originals are untouched.
+const BG_VIDEOS = [videoSeidenstoff, videoHerrenjacken, videoHosen];
+
 export default function Hero() {
+  const [videoIndex, setVideoIndex] = useState(0);
+
   const scrollToKontakt = () => {
     document.getElementById("kontakt")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
     <section id="start" className={`${styles.hero} section`}>
+      {/* Barely-there texture, not a focal element — kept at ~2.5% opacity
+         per client direction so it reads as depth rather than a video. */}
+      <video
+        key={BG_VIDEOS[videoIndex]}
+        className={styles.bgVideo}
+        autoPlay
+        muted
+        playsInline
+        aria-hidden="true"
+        onEnded={() => setVideoIndex((i) => (i + 1) % BG_VIDEOS.length)}
+      >
+        <source src={BG_VIDEOS[videoIndex]} type="video/mp4" />
+      </video>
       <BlobShape variant="glow" className={styles.blobGlow} />
       <DancerMotif className={styles.motifLeft} />
       <DancerMotif className={styles.motifRight} />
