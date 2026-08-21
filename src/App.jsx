@@ -38,8 +38,8 @@ function Home() {
   return (
     <>
       <Hero />
-      <LogoCarousel />
       <UeberUns />
+      <LogoCarousel />
       <Sortiment />
       <SocialMedia />
       <OeffnungszeitenKontakt />

@@ -6,6 +6,12 @@ import styles from "./AnnouncementBar.module.css";
 const DISMISS_KEY = "sei-du-announcement-dismissed";
 const REPEAT = 8;
 const HEIGHT_VAR = "--announcement-height";
+// Matches the brand-logo marquee's speed just below the hero (LogoCarousel:
+// ~42px/s). The announcement text comes from the CMS and its rendered width
+// varies, so — unlike LogoCarousel's fixed copy count — the duration has to
+// be derived from the actual measured track width rather than a constant.
+const TRACK_SPEED_PX_S = 42;
+const DEFAULT_DURATION_S = 28;
 
 export default function AnnouncementBar() {
   const { status, data } = useAnnouncementBar();
@@ -17,6 +23,8 @@ export default function AnnouncementBar() {
     }
   });
   const barRef = useRef(null);
+  const trackRef = useRef(null);
+  const [duration, setDuration] = useState(DEFAULT_DURATION_S);
 
   const visible = status === "loaded" && data?.aktiv && data?.text && data.text !== dismissedText;
 
@@ -43,6 +51,24 @@ export default function AnnouncementBar() {
     return () => resizeObserver.disconnect();
   }, [visible]);
 
+  // Track width depends on the CMS text length, so the duration needed to
+  // hold TRACK_SPEED_PX_S has to be derived from the actual rendered width.
+  useEffect(() => {
+    if (!visible) return;
+    const track = trackRef.current;
+    if (!track) return;
+
+    const update = () => {
+      const halfWidth = track.scrollWidth / 2;
+      if (halfWidth > 0) setDuration(halfWidth / TRACK_SPEED_PX_S);
+    };
+    update();
+
+    const resizeObserver = new ResizeObserver(update);
+    resizeObserver.observe(track);
+    return () => resizeObserver.disconnect();
+  }, [visible, data?.text]);
+
   if (!visible) return null;
 
   const handleDismiss = () => {
@@ -59,7 +85,7 @@ export default function AnnouncementBar() {
   return (
     <div className={styles.bar} ref={barRef}>
       <div className={styles.viewport}>
-        <div className={styles.track}>
+        <div className={styles.track} ref={trackRef} style={{ animationDuration: `${duration}s` }}>
           {items.map((i) => (
             <span className={styles.item} key={`a-${i}`}>
               {data.text}

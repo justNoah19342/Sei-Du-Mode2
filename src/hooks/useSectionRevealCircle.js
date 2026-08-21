@@ -86,11 +86,14 @@ export function useSectionRevealCircle(index, elRef, { collapseOnHide = false } 
     if (!el) return;
 
     const observer = new ResizeObserver(() => {
-      setOrigin(computeOrigin(el, getSectionRevealState()));
+      const state = getSectionRevealState();
+      const computed = computeOrigin(el, state);
+      const nextRevealed = index === state.activeIndex;
+      setOrigin(collapseOnHide && !nextRevealed ? { ...computed, r: 0 } : computed);
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, [elRef]);
+  }, [elRef, index, collapseOnHide]);
 
   return { revealed, instant, origin };
 }
