@@ -33,6 +33,16 @@
   transform: rotate(-6deg);
 }
 
+/* Left offset is a percentage of the hero's width, so it keeps drifting
+   further left as the viewport (and therefore the hero) grows. Past 1238px
+   it's pinned to its exact pixel position at that breakpoint instead of
+   continuing to track the percentage. */
+@media (min-width: 1238px) {
+  .motifLeft {
+    left: -112px;
+  }
+}
+
 .motifRight {
   width: 380px;
   height: 388px;
