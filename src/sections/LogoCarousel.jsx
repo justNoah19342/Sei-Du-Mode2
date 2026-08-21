@@ -14,19 +14,20 @@ const { index: SECTION_INDEX, color: SECTION_COLOR } = getSectionInfo("marken");
 // retargets from its current position, which visibly jumped or gapped the
 // strip. A copy count that never changes after mount needs a shift target
 // that never changes either (a constant -50%, i.e. exactly one half of the
-// track), so that whole bug class can't happen here anymore. 4 copies per
-// half (8 total, ~6,000px of logos) comfortably covers even a very wide
-// effective viewport, e.g. the ~5x-wider CSS viewport from zooming out to
-// 20% — the animation only ever shifts up to -50%, so it's specifically
-// *one half's* width that has to be at least as wide as the widest
-// realistic viewport, not the track's total width.
-// Kept deliberately smaller than that "generous" ceiling would allow: at 7
-// copies (~21,000px total) the strip got long enough that some GPUs visibly
-// dropped tiles mid-scroll — logos vanishing partway through the loop and
-// only reappearing once the translateX value came back down near 0. Large
-// transform distances are a known compositor tiling edge case; keeping the
-// peak distance smaller avoids it.
-const COPIES_PER_HALF = 4;
+// track), so that whole bug class can't happen here anymore.
+//
+// Deliberately NOT sized for extreme zoom-out anymore — long transform
+// distances are a known compositor tiling edge case, and both 7 copies
+// (~21,000px total) and 4 copies (~12,000px) still visibly dropped tiles
+// mid-scroll on real devices (cards blanking out, reappearing once the
+// translateX value came back down near 0). 3 copies per half (~4,500px)
+// comfortably covers any realistic monitor at 100% zoom — the priority the
+// client actually asked for — while keeping the peak transform distance
+// short enough that the artifact stops showing up. See also the
+// will-change/backface-visibility hints on .track in the CSS, which force a
+// dedicated compositor layer instead of one being promoted/recycled on the
+// fly (the actual root cause).
+const COPIES_PER_HALF = 3;
 // Scales with COPIES_PER_HALF so the time-per-logo stays constant — the
 // loop now travels COPIES_PER_HALF times the distance per cycle, so it
 // needs COPIES_PER_HALF times as long to look the same speed as before.

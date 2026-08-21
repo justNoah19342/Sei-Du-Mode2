@@ -32,6 +32,13 @@
   width: max-content;
   padding-inline: var(--space-5);
   animation: marquee 36s linear infinite;
+  /* Forces the browser to allocate a dedicated compositor layer for this
+     element up front, instead of promoting/recycling one on the fly as the
+     transform runs — without it, cards were visibly blanking out mid-scroll
+     (tile-recycling artifact on long transform distances) and only
+     reappearing once the translateX value came back down. */
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 /* Scoped to real mouse/keyboard devices only — on touch devices (iOS/
