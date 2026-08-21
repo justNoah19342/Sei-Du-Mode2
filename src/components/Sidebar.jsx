@@ -11,8 +11,6 @@ import { useNavigateToSection } from "../hooks/useNavigateToSection";
 import styles from "./Sidebar.module.css";
 
 const ids = navItems.map((item) => item.id);
-// Slight uneven rhythm between nav items — deliberate, not a uniform list.
-const offsets = [0, 10, -4, 14];
 
 function rectsOverlap(a, b) {
   return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
@@ -85,7 +83,6 @@ export default function Sidebar() {
       {!collapsed && (
         <>
           <BlobShape variant="glow" className={styles.blobGlow} />
-          <BlobShape variant="primary" className={styles.blobTop} />
 
           <div className={styles.logoWrap}>
             <Logo size="md" />
@@ -95,12 +92,11 @@ export default function Sidebar() {
 
           <nav aria-label="Hauptnavigation">
             <ul ref={navListRef} className={styles.navList}>
-              {navItems.map((item, i) => (
+              {navItems.map((item) => (
                 <NavLink
                   key={item.id}
                   label={item.label}
                   isActive={activeId === item.id}
-                  offset={offsets[i] ?? 0}
                   onClick={() => handleNavClick(item.id)}
                 />
               ))}

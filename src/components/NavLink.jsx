@@ -1,8 +1,8 @@
 import styles from "./NavLink.module.css";
 
-export default function NavLink({ label, isActive, onClick, offset = 0 }) {
+export default function NavLink({ label, isActive, onClick }) {
   return (
-    <li className={styles.item} style={{ "--offset": `${offset}px` }}>
+    <li>
       <button
         className={`${styles.link} ${isActive ? styles.active : ""}`}
         onClick={onClick}

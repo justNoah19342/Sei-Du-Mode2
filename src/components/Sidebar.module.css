@@ -14,13 +14,6 @@
   overflow: hidden;
   isolation: isolate;
   transition: width 280ms var(--ease-reveal);
-  /* Organic right edge instead of a hard vertical line. Percentage points so it
-     scales correctly with the sidebar's actual width/height regardless of
-     collapsed state (path() would not). */
-  clip-path: polygon(
-    0 0, 94% 0, 100% 6%, 96% 14%, 100% 24%, 97% 34%, 100% 46%,
-    98% 58%, 100% 70%, 96% 80%, 100% 90%, 97% 96%, 100% 100%, 0 100%
-  );
 }
 
 .sidebar.collapsed {
@@ -65,13 +58,6 @@
   height: 320px;
 }
 
-.blobTop {
-  top: -40px;
-  right: -60px;
-  width: 180px;
-  height: 180px;
-}
-
 .motif {
   width: 340px;
   height: 440px;
@@ -103,7 +89,7 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: 18px;
   flex: 1;
 }
 
