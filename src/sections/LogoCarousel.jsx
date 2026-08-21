@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import SectionHeading from "../components/SectionHeading";
 import SectionReveal from "../components/SectionReveal";
 import { getSectionInfo } from "../lib/sectionRevealStore";
@@ -36,17 +37,41 @@ function PartnerCard({ partner, hidden }) {
       tabIndex={hidden ? -1 : undefined}
       onClick={(e) => e.currentTarget.blur()}
     >
-      <img
-        className={styles.logo}
-        src={partner.logo}
-        alt={hidden ? "" : partner.name}
-        loading="lazy"
-      />
+      {/* Eager, not lazy — every logo in this strip is going to scroll into
+         view within seconds regardless, and native lazy-loading was
+         deferring the fetch until each card neared the viewport, which
+         showed up as a stall in the marquee the first time a not-yet-cached
+         logo scrolled in. */}
+      <img className={styles.logo} src={partner.logo} alt={hidden ? "" : partner.name} />
     </a>
   );
 }
 
 export default function LogoCarousel() {
+  const trackRef = useRef(null);
+
+  // Opening a partner link (target="_blank") leaves that card focused; some
+  // browsers re-apply focus to it when the tab regains visibility after the
+  // new tab closes/loses focus, which would re-trigger the focus-within
+  // pause below and leave its glow ring stuck. Clearing focus once the tab
+  // is visible again covers that regardless of which browser did the
+  // re-focusing.
+  useEffect(() => {
+    const clearStaleFocus = () => {
+      if (document.visibilityState !== "visible") return;
+      const track = trackRef.current;
+      if (track && track.contains(document.activeElement)) {
+        document.activeElement.blur();
+      }
+    };
+    document.addEventListener("visibilitychange", clearStaleFocus);
+    window.addEventListener("focus", clearStaleFocus);
+    return () => {
+      document.removeEventListener("visibilitychange", clearStaleFocus);
+      window.removeEventListener("focus", clearStaleFocus);
+    };
+  }, []);
+
   return (
     <section id="marken" className={`${styles.section} section`}>
       <SectionReveal index={SECTION_INDEX} color={SECTION_COLOR} />
@@ -59,7 +84,7 @@ export default function LogoCarousel() {
       </div>
 
       <div className={styles.viewport}>
-        <div className={styles.track} style={{ animationDuration: `${LOOP_DURATION_S}s` }}>
+        <div ref={trackRef} className={styles.track} style={{ animationDuration: `${LOOP_DURATION_S}s` }}>
           {Array.from({ length: COPIES_PER_HALF * 2 }, (_, copyIndex) =>
             partners.map((partner) => (
               <PartnerCard key={`${partner.name}-${copyIndex}`} partner={partner} hidden={copyIndex > 0} />

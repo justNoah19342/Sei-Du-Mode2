@@ -34,9 +34,15 @@
   animation: marquee 36s linear infinite;
 }
 
-.track:hover,
-.track:focus-within {
-  animation-play-state: paused;
+/* Scoped to real mouse/keyboard devices only — on touch devices (iOS/
+   Android) a tap both leaves :hover "stuck" indefinitely (no mouseleave to
+   clear it) and focuses the tapped link, so pausing on hover/focus there
+   would freeze the marquee permanently after the first tap. */
+@media (hover: hover) and (pointer: fine) {
+  .track:hover,
+  .track:focus-within {
+    animation-play-state: paused;
+  }
 }
 
 .card {
