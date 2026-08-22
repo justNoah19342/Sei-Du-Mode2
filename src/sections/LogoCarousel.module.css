@@ -31,25 +31,12 @@
   gap: var(--space-6);
   width: max-content;
   padding-inline: var(--space-5);
-  animation: marquee 36s linear infinite;
-  /* Forces the browser to allocate a dedicated compositor layer for this
-     element up front, instead of promoting/recycling one on the fly as the
-     transform runs — without it, cards were visibly blanking out mid-scroll
-     (tile-recycling artifact on long transform distances) and only
-     reappearing once the translateX value came back down. */
+  /* Position is driven by the requestAnimationFrame + modulo-wrap loop in
+     LogoCarousel.jsx, not a CSS keyframe — see that file for why. Hover/
+     focus pausing is handled there too (mouseenter/focusin listeners), since
+     there's no running CSS animation left to pause here. */
   will-change: transform;
   backface-visibility: hidden;
-}
-
-/* Scoped to real mouse/keyboard devices only — on touch devices (iOS/
-   Android) a tap both leaves :hover "stuck" indefinitely (no mouseleave to
-   clear it) and focuses the tapped link, so pausing on hover/focus there
-   would freeze the marquee permanently after the first tap. */
-@media (hover: hover) and (pointer: fine) {
-  .track:hover,
-  .track:focus-within {
-    animation-play-state: paused;
-  }
 }
 
 .card {
@@ -61,7 +48,10 @@
   height: 96px;
   background: var(--color-surface);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  /* Test: no resting box-shadow — a permanent shadow on every one of the
+     ~45 recycled cards costs the compositor extra paint/tile work on every
+     one of them, all the time, for a visual effect only the hovered card
+     needs. Shadow now only exists while actually hovered/focused. */
   padding: var(--space-4);
   transition: box-shadow 380ms var(--ease-reveal), transform 380ms var(--ease-reveal);
 }
@@ -87,23 +77,11 @@
   opacity: 1;
 }
 
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    /* The track always renders two identical halves (see COPIES_PER_HALF
-       in LogoCarousel.jsx), so shifting by exactly half its own width
-       always lands on identical content — a seamless loop with no JS
-       measurement needed, and no risk of a running transition retargeting
-       mid-flight the way a JS-measured custom property could. */
-    transform: translateX(-50%);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .track {
-    animation: none;
+    /* The JS loop bails out entirely under reduced motion (see
+       LogoCarousel.jsx), leaving transform unset — this just makes the
+       static, untransformed track scrollable instead. */
     overflow-x: auto;
   }
 }
