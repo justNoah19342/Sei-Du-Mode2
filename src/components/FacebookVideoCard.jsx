@@ -147,20 +147,24 @@ export function VideoCard({ video, revealed, onOpen }) {
 
       <VideoActions liked={liked} onToggleLike={() => setLiked((value) => !value)} likeCount={video.likeCount ?? 0} video={video} />
 
-      {description && (
-        <p className={`${styles.description} ${descExpanded ? "" : styles.descriptionClamped}`}>
-          {description}
-          {isLongDescription && (
-            <button
-              type="button"
-              className={styles.moreButton}
-              onClick={() => setDescExpanded((value) => !value)}
-            >
-              {descExpanded ? " weniger" : " mehr"}
-            </button>
-          )}
-        </p>
-      )}
+      {/* Always rendered — even with a short or missing description — so
+         every card reserves the same space a full 5-line-clamped one would
+         need (see .description's min-height). Otherwise cards in the mobile
+         coverflow, which has no grid/flex row to stretch them to a shared
+         height, would each end up whatever size their own content happens
+         to need. */}
+      <p className={`${styles.description} ${descExpanded ? "" : styles.descriptionClamped}`}>
+        {description}
+        {isLongDescription && (
+          <button
+            type="button"
+            className={styles.moreButton}
+            onClick={() => setDescExpanded((value) => !value)}
+          >
+            {descExpanded ? " weniger" : " mehr"}
+          </button>
+        )}
+      </p>
     </motion.li>
   );
 }

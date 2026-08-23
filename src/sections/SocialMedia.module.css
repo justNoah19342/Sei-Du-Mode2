@@ -191,6 +191,14 @@
   font-size: 0.85rem;
   line-height: 1.4;
   color: var(--fb-text);
+  /* Reserves the same 5 lines' worth of height every card gets whether its
+     own description is 5 lines, 1 line, or empty — so every card ends up
+     the same overall size, matching the tallest (fully clamped) one instead
+     of shrink-wrapping to its own shorter text. box-sizing is border-box
+     site-wide, so the padding has to be added on top of the 5 line-boxes
+     (0.85rem font-size × 1.4 line-height), not left for min-height to eat
+     into — a plain "5.95rem" here measured ~20px short in practice. */
+  min-height: calc(0.85rem * 1.4 * 5 + var(--space-2) + var(--space-3));
 }
 
 .descriptionClamped {
