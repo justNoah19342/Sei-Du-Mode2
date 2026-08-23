@@ -5,6 +5,7 @@ import { FacebookLogo, Heart, Play, ShareNetwork } from "@phosphor-icons/react";
 import logo from "../assets/logo.jpeg";
 import SectionHeading from "../components/SectionHeading";
 import SectionReveal from "../components/SectionReveal";
+import SilkShader from "../components/SilkShader";
 import VideoCoverflow from "../components/VideoCoverflow";
 import { useFacebookVideos } from "../hooks/useFacebookVideos";
 import { useMediaQuery } from "../hooks/useMediaQuery";
@@ -63,21 +64,35 @@ function shareVideo(video) {
   if (popup) popup.opener = null;
 }
 
-function VideoActions({ liked, onToggleLike, video }) {
+// "10789" -> "10k" — truncated (not rounded) to whole thousands, matching
+// how large counts are conventionally abbreviated on social platforms.
+function formatLikeCount(count) {
+  if (count >= 1000) return `${Math.floor(count / 1000)}k`;
+  return String(count);
+}
+
+function VideoActions({ liked, onToggleLike, likeCount, video }) {
+  // The heart only ever toggles a local, visual "liked" state (see VideoCard/
+  // VideoModal) — there's no real Facebook user session to like through, so
+  // this is the honest optimistic-UI compromise: Facebook's own count, plus
+  // one while the visitor's own heart is toggled on.
+  const displayCount = likeCount + (liked ? 1 : 0);
+
   return (
     <div className={styles.actionsRow}>
       <button
         type="button"
-        className={styles.iconButton}
+        className={styles.likeButton}
         aria-pressed={liked}
         aria-label="Gefällt mir"
         onClick={onToggleLike}
       >
         <Heart weight={liked ? "fill" : "regular"} size={20} />
+        {displayCount > 0 && <span className={styles.likeCount}>{formatLikeCount(displayCount)}</span>}
       </button>
       <button
         type="button"
-        className={styles.iconButton}
+        className={`${styles.iconButton} ${styles.shareButton}`}
         aria-label="Teilen"
         onClick={() => shareVideo(video)}
       >
@@ -145,7 +160,7 @@ function VideoCard({ video, revealed, onOpen }) {
         </button>
       </div>
 
-      <VideoActions liked={liked} onToggleLike={() => setLiked((value) => !value)} video={video} />
+      <VideoActions liked={liked} onToggleLike={() => setLiked((value) => !value)} likeCount={video.likeCount ?? 0} video={video} />
 
       {description && (
         <p className={`${styles.description} ${descExpanded ? "" : styles.descriptionClamped}`}>
@@ -266,7 +281,7 @@ function VideoModal({ video, onClose }) {
             </div>
             {description && <p className={styles.overlayDescription}>{description}</p>}
             <div className={styles.overlayActions}>
-              <VideoActions liked={liked} onToggleLike={() => setLiked((value) => !value)} video={video} />
+              <VideoActions liked={liked} onToggleLike={() => setLiked((value) => !value)} likeCount={video.likeCount ?? 0} video={video} />
             </div>
           </div>
         </div>
@@ -390,7 +405,8 @@ export default function SocialMedia() {
   return (
     <section id="social-media" ref={sectionRef} className={`${styles.section} section`}>
       <SectionReveal index={SECTION_INDEX} color={SECTION_COLOR} />
-      <div className="container">
+      <SilkShader className={styles.silkBackground} />
+      <div className={`container ${styles.content}`}>
         <FacebookHeading />
         <FacebookVideoRow revealed={revealed} isStacked={isStacked} />
       </div>

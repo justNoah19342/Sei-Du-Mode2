@@ -22,23 +22,47 @@
   --fb-radius-card: 12px;
   --fb-radius-thumb: 8px;
 
+  position: relative;
+  overflow: hidden;
   background: var(--fb-bg);
   font-family: var(--fb-font);
 }
 
+/* Animated WebGL background (SilkShader) — fills the section behind
+   everything, purely decorative (no pointer events of its own) so the
+   heading and video cards above it stay fully interactive. */
+.silkBackground {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Lifts the real content above .silkBackground — a plain, unpositioned
+   sibling would otherwise paint in the normal flow layer, which sits behind
+   a z-indexed absolute sibling that comes earlier in source order. */
+.content {
+  position: relative;
+  z-index: 1;
+}
+
 /* .eyebrow (global.css) and h2 (site-wide h1/h2/h3 rule) are shared across
    every section — overridden only inside this one via a scoped descendant
-   selector, same technique as Sortiment.module.css's :global(#sortiment). */
+   selector, same technique as Sortiment.module.css's :global(#sortiment).
+   White rather than --fb-blue/--fb-text: the animated SilkShader background
+   sitting behind the heading is itself white-on-blue, so the original dark
+   text and (identically) blue eyebrow would both lose their contrast against
+   it — same reason .headingClone below has always painted this white too. */
 .section :global(.eyebrow) {
   font-family: var(--fb-font);
-  color: var(--fb-blue);
+  color: #ffffff;
   letter-spacing: normal;
   text-transform: none;
 }
 
 .section h2 {
   font-family: var(--fb-font);
-  color: var(--fb-text);
+  color: #ffffff;
   font-weight: 700;
 }
 
@@ -295,6 +319,26 @@
 
 .iconButton[aria-pressed="true"] {
   color: #e0245e;
+}
+
+/* Like keeps the round icon-button footprint but grows to fit its count. */
+.likeButton {
+  composes: iconButton;
+  width: auto;
+  min-width: 36px;
+  padding: 0 var(--space-2) 0 0;
+  gap: 4px;
+  border-radius: 999px;
+}
+
+.likeCount {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Pushed to the row's far end — Like stays anchored left. */
+.shareButton {
+  margin-left: auto;
 }
 
 .showMoreButton {
