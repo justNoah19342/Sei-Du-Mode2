@@ -22,28 +22,14 @@
   --fb-radius-card: 12px;
   --fb-radius-thumb: 8px;
 
-  position: relative;
-  overflow: hidden;
-  background: var(--fb-bg);
+  /* Solid "our blue" base with a darker-blue radial glow breathing out from
+     the center — swapped in for a white-base/lighter-glow reference design,
+     so the glow needed to move a shade past the base blue instead of past
+     white to still read as a distinct highlight rather than disappearing
+     into it. */
+  background-color: var(--fb-blue);
+  background-image: radial-gradient(circle at center, #4791eb 0%, transparent 70%);
   font-family: var(--fb-font);
-}
-
-/* Animated WebGL background (SilkShader) — fills the section behind
-   everything, purely decorative (no pointer events of its own) so the
-   heading and video cards above it stay fully interactive. */
-.silkBackground {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* Lifts the real content above .silkBackground — a plain, unpositioned
-   sibling would otherwise paint in the normal flow layer, which sits behind
-   a z-indexed absolute sibling that comes earlier in source order. */
-.content {
-  position: relative;
-  z-index: 1;
 }
 
 /* .eyebrow (global.css) and h2 (site-wide h1/h2/h3 rule) are shared across

@@ -5,7 +5,6 @@ import { FacebookLogo, Heart, Play, ShareNetwork } from "@phosphor-icons/react";
 import logo from "../assets/logo.jpeg";
 import SectionHeading from "../components/SectionHeading";
 import SectionReveal from "../components/SectionReveal";
-import SilkShader from "../components/SilkShader";
 import VideoCoverflow from "../components/VideoCoverflow";
 import { useFacebookVideos } from "../hooks/useFacebookVideos";
 import { useMediaQuery } from "../hooks/useMediaQuery";
@@ -405,8 +404,7 @@ export default function SocialMedia() {
   return (
     <section id="social-media" ref={sectionRef} className={`${styles.section} section`}>
       <SectionReveal index={SECTION_INDEX} color={SECTION_COLOR} />
-      <SilkShader className={styles.silkBackground} />
-      <div className={`container ${styles.content}`}>
+      <div className="container">
         <FacebookHeading />
         <FacebookVideoRow revealed={revealed} isStacked={isStacked} />
       </div>
