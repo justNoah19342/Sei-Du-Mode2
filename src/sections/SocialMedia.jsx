@@ -1,6 +1,7 @@
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
-import { Play } from "@phosphor-icons/react";
+import { FacebookLogo, Heart, Play } from "@phosphor-icons/react";
+import logo from "../assets/logo.jpeg";
 import SectionHeading from "../components/SectionHeading";
 import SectionReveal from "../components/SectionReveal";
 import VideoCoverflow from "../components/VideoCoverflow";
@@ -16,6 +17,30 @@ const ENTRANCE_DURATION = 0.6;
 // Mirrors --ease-reveal's curve — hardcoded because Framer Motion transition
 // configs are plain JS values, not CSS custom properties.
 const ENTRANCE_EASE = [0.25, 0.46, 0.45, 0.94];
+// Descriptions longer than this collapse behind a "mehr" toggle, matching
+// roughly the cutoff length shown in the reference design.
+const DESCRIPTION_TRUNCATE_LENGTH = 140;
+// How many rows (in card-heights) peek through above the section-wide "mehr"
+// button before the rest of the grid is hidden behind the blur mask.
+const COLLAPSED_ROW_COUNT = 1.5;
+
+function formatRelativeTime(isoString) {
+  if (!isoString) return "";
+  const diffMs = Date.now() - new Date(isoString).getTime();
+  const diffMinutes = Math.floor(diffMs / 60000);
+  if (diffMinutes < 1) return "gerade eben";
+  if (diffMinutes < 60) return `vor ${diffMinutes} Minute${diffMinutes === 1 ? "" : "n"}`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `vor ${diffHours} Stunde${diffHours === 1 ? "" : "n"}`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `vor ${diffDays} Tag${diffDays === 1 ? "" : "en"}`;
+  const diffWeeks = Math.floor(diffDays / 7);
+  if (diffWeeks < 5) return `vor ${diffWeeks} Woche${diffWeeks === 1 ? "" : "n"}`;
+  const diffMonths = Math.floor(diffDays / 30);
+  if (diffMonths < 12) return `vor ${diffMonths} Monat${diffMonths === 1 ? "" : "en"}`;
+  const diffYears = Math.floor(diffDays / 365);
+  return `vor ${diffYears} Jahr${diffYears === 1 ? "" : "en"}`;
+}
 
 function VideoCard({ video, revealed }) {
   // Tracks whether the one-time scroll entrance has finished, so a later
@@ -23,7 +48,12 @@ function VideoCard({ video, revealed }) {
   // instantly instead of replaying the slide — layout stays "live" for the
   // component's whole lifetime otherwise.
   const [hasSettled, setHasSettled] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const [descExpanded, setDescExpanded] = useState(false);
+  const [liked, setLiked] = useState(false);
   const isStacked = !revealed;
+  const description = video.description || "";
+  const isLongDescription = description.length > DESCRIPTION_TRUNCATE_LENGTH;
 
   return (
     <motion.li
@@ -33,31 +63,94 @@ function VideoCard({ video, revealed }) {
       transition={hasSettled ? { duration: 0 } : { duration: ENTRANCE_DURATION, ease: ENTRANCE_EASE }}
       onLayoutAnimationComplete={() => setHasSettled(true)}
     >
-      {/* The scale-on-hover lives on this inner motion.a, not the outer
+      <div className={styles.cardHeader}>
+        <img
+          src={logo}
+          alt="SEI DU Mode, Boutique in Neunkirchen-Seelscheid"
+          className={styles.avatar}
+        />
+        <div className={styles.cardHeaderText}>
+          <a
+            href={video.permalinkUrl || undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.pageName}
+          >
+            Sei Du Mode
+          </a>
+          <span className={styles.timestamp}>{formatRelativeTime(video.createdTime)}</span>
+        </div>
+        <FacebookLogo className={styles.platformIcon} weight="fill" size={20} aria-hidden="true" />
+      </div>
+
+      {description && (
+        <p className={styles.description}>
+          {isLongDescription && !descExpanded
+            ? `${description.slice(0, DESCRIPTION_TRUNCATE_LENGTH).trimEnd()}…`
+            : description}
+          {isLongDescription && (
+            <button
+              type="button"
+              className={styles.moreButton}
+              onClick={() => setDescExpanded((value) => !value)}
+            >
+              {descExpanded ? " weniger" : " mehr"}
+            </button>
+          )}
+        </p>
+      )}
+
+      {/* The scale-on-hover lives on this inner motion.button, not the outer
          motion.li — the li's layout prop already owns its own transform for
          the entrance FLIP, so a transform (CSS or whileHover) placed there
          gets silently overridden. This element also receives real focus
          itself (rather than needing :focus-within on an ancestor), which is
          what whileFocus actually listens for. */}
-      <motion.a
-        href={video.permalinkUrl || undefined}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={styles.thumbLink}
-        aria-label="Facebook-Video ansehen"
-        whileHover={{ scale: 1.03 }}
-        whileFocus={{ scale: 1.03 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-      >
-        <div
-          className={styles.thumb}
-          style={video.thumbnail ? { backgroundImage: `url(${video.thumbnail})` } : undefined}
+      <div className={styles.thumbWrap}>
+        {playing && video.permalinkUrl ? (
+          <iframe
+            className={styles.videoFrame}
+            src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
+              video.permalinkUrl
+            )}&show_text=false&autoplay=true`}
+            title="Facebook-Video"
+            allow="autoplay; encrypted-media; picture-in-picture; web-share"
+            allowFullScreen
+            frameBorder="0"
+          />
+        ) : (
+          <motion.button
+            type="button"
+            className={styles.thumbButton}
+            aria-label="Facebook-Video abspielen"
+            onClick={() => setPlaying(true)}
+            whileHover={{ scale: 1.03 }}
+            whileFocus={{ scale: 1.03 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          >
+            <div
+              className={styles.thumb}
+              style={video.thumbnail ? { backgroundImage: `url(${video.thumbnail})` } : undefined}
+            >
+              <span className={styles.playBadge}>
+                <Play className={styles.playIcon} size={18} weight="fill" />
+              </span>
+            </div>
+          </motion.button>
+        )}
+      </div>
+
+      <div className={styles.cardFooter}>
+        <button
+          type="button"
+          className={styles.likeButton}
+          aria-pressed={liked}
+          onClick={() => setLiked((value) => !value)}
         >
-          <span className={styles.playBadge}>
-            <Play className={styles.playIcon} size={18} weight="fill" />
-          </span>
-        </div>
-      </motion.a>
+          <Heart weight={liked ? "fill" : "regular"} size={18} />
+          Gefällt mir
+        </button>
+      </div>
     </motion.li>
   );
 }
@@ -93,6 +186,36 @@ function FacebookHeading() {
 
 function FacebookVideoRow({ revealed, isStacked }) {
   const { status, videos } = useFacebookVideos();
+  const [showAll, setShowAll] = useState(false);
+  const gridRef = useRef(null);
+  const [collapsedHeight, setCollapsedHeight] = useState(null);
+  const [fullHeight, setFullHeight] = useState(null);
+  const hasMore = videos.length > 5;
+
+  // Measures the actual rendered row height (cards are 9:16 thumbnails, so
+  // their height depends on the current column width) to derive a pixel
+  // max-height showing ~1.5 rows before the fade/blur cutoff, and the grid's
+  // true full height so expanding can transition to a real value instead of
+  // jumping to "none".
+  useLayoutEffect(() => {
+    if (isStacked || !hasMore || !gridRef.current) return undefined;
+
+    const measure = () => {
+      const grid = gridRef.current;
+      if (!grid) return;
+      const firstCard = grid.querySelector(`.${styles.card}`);
+      if (!firstCard) return;
+      const rowHeight = firstCard.getBoundingClientRect().height;
+      const gapPx = parseFloat(getComputedStyle(grid).rowGap) || 0;
+      setCollapsedHeight(rowHeight * COLLAPSED_ROW_COUNT + gapPx * (COLLAPSED_ROW_COUNT - 1));
+      setFullHeight(grid.scrollHeight);
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(gridRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, isStacked, videos.length]);
 
   // "not configured" / errored / empty all collapse to the same "nothing to
   // show yet" state rather than a broken-looking empty grid — the Meta app +
@@ -124,12 +247,30 @@ function FacebookVideoRow({ revealed, isStacked }) {
     return <VideoCoverflow videos={videos} />;
   }
 
+  const collapsedActive = hasMore && !showAll && collapsedHeight != null;
+
   return (
-    <ul className={styles.grid}>
-      {videos.map((video) => (
-        <VideoCard key={video.id} video={video} revealed={revealed} />
-      ))}
-    </ul>
+    <div className={styles.gridWrap}>
+      <ul
+        ref={gridRef}
+        className={styles.grid}
+        style={
+          hasMore
+            ? { maxHeight: showAll ? fullHeight ?? undefined : collapsedHeight ?? undefined, overflow: "hidden" }
+            : undefined
+        }
+      >
+        {videos.map((video) => (
+          <VideoCard key={video.id} video={video} revealed={revealed} />
+        ))}
+      </ul>
+      {collapsedActive && <div className={styles.fadeMask} aria-hidden="true" />}
+      {hasMore && (
+        <button type="button" className={styles.showMoreButton} onClick={() => setShowAll((value) => !value)}>
+          {showAll ? "weniger" : "mehr"}
+        </button>
+      )}
+    </div>
   );
 }
 

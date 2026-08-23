@@ -26,13 +26,13 @@ async function handleFacebookVideos(env) {
   // Regular videos and Reels are separate content types on the Graph API —
   // /videos alone misses Reels, so both edges are fetched and merged.
   const videosUrl = new URL(`https://graph.facebook.com/${GRAPH_API_VERSION}/${pageId}/videos`);
-  videosUrl.searchParams.set("fields", "id,permalink_url,picture,created_time");
-  videosUrl.searchParams.set("limit", "10");
+  videosUrl.searchParams.set("fields", "id,permalink_url,picture,created_time,description");
+  videosUrl.searchParams.set("limit", "15");
   videosUrl.searchParams.set("access_token", accessToken);
 
   const reelsUrl = new URL(`https://graph.facebook.com/${GRAPH_API_VERSION}/${pageId}/video_reels`);
-  reelsUrl.searchParams.set("fields", "id,permalink_url,picture,created_time");
-  reelsUrl.searchParams.set("limit", "10");
+  reelsUrl.searchParams.set("fields", "id,permalink_url,picture,created_time,description");
+  reelsUrl.searchParams.set("limit", "15");
   reelsUrl.searchParams.set("access_token", accessToken);
 
   let videosResponse, reelsResponse;
@@ -57,11 +57,13 @@ async function handleFacebookVideos(env) {
 
   const videos = [...byId.values()]
     .sort((a, b) => new Date(b.created_time) - new Date(a.created_time))
-    .slice(0, 5)
+    .slice(0, 10)
     .map((video) => ({
       id: video.id,
       thumbnail: video.picture || null,
       permalinkUrl: toAbsoluteUrl(video.permalink_url),
+      description: video.description || "",
+      createdTime: video.created_time || null,
     }));
 
   return jsonResponse({ videos }, 200, {

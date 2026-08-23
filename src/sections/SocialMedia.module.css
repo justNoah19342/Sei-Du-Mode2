@@ -98,11 +98,16 @@
   color: #ffffff;
 }
 
+.gridWrap {
+  position: relative;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: var(--space-5);
   margin-top: var(--space-7);
+  transition: max-height 500ms var(--ease-reveal);
   /* Grid tracks stay their own width even when a track has no item in it, so
      with fewer than 5 videos the real cards simply sit left-aligned instead
      of stretching to fill the row. The same "empty tracks keep their width"
@@ -111,6 +116,8 @@
 }
 
 .card {
+  display: flex;
+  flex-direction: column;
   background: var(--fb-surface);
   border: 1px solid var(--fb-border);
   border-radius: var(--fb-radius-card);
@@ -123,18 +130,104 @@
   border-color: var(--fb-blue);
 }
 
-.thumbLink {
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3) 0;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.cardHeaderText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.pageName {
+  font-family: var(--fb-font);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--fb-text);
+  text-decoration: none;
+}
+
+.pageName:hover,
+.pageName:focus-visible {
+  text-decoration: underline;
+}
+
+.timestamp {
+  font-size: 0.75rem;
+  color: var(--fb-text-muted);
+}
+
+.platformIcon {
+  color: var(--fb-blue);
+  flex-shrink: 0;
+}
+
+.description {
+  margin: 0;
+  padding: var(--space-2) var(--space-3) 0;
+  font-family: var(--fb-font);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--fb-text);
+}
+
+.moreButton {
+  margin-left: 2px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--fb-text-muted);
+  cursor: pointer;
+}
+
+.moreButton:hover,
+.moreButton:focus-visible {
+  color: var(--fb-text);
+  text-decoration: underline;
+}
+
+.thumbWrap {
+  margin-top: var(--space-3);
+}
+
+.thumbButton {
   display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
 }
 
 .thumb {
   position: relative;
   aspect-ratio: 9 / 16;
-  border-radius: var(--fb-radius-thumb) var(--fb-radius-thumb) 0 0;
   background: linear-gradient(135deg, var(--fb-bg), #dadde1);
   background-size: cover;
   background-position: center;
   overflow: hidden;
+}
+
+.videoFrame {
+  display: block;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  border: 0;
 }
 
 .playBadge {
@@ -160,6 +253,76 @@
 
 .playIcon {
   color: var(--fb-blue);
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  margin-top: auto;
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--fb-border);
+}
+
+.likeButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  font-family: var(--fb-font);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--fb-text-muted);
+  cursor: pointer;
+  transition: background 150ms var(--ease-reveal), color 150ms var(--ease-reveal);
+}
+
+.likeButton:hover,
+.likeButton:focus-visible {
+  background: var(--fb-bg);
+}
+
+.likeButton[aria-pressed="true"] {
+  color: #e0245e;
+}
+
+/* Sits over the bottom of the collapsed grid to blur/fade the partial second
+   row into the section background, so the cut-off reads as an intentional
+   transition rather than content just stopping mid-card. */
+.fadeMask {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 140px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--fb-bg) 85%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 70%);
+  mask-image: linear-gradient(to bottom, transparent, black 70%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.showMoreButton {
+  display: block;
+  margin: var(--space-5) auto 0;
+  padding: 10px 28px;
+  border: 1px solid var(--fb-border);
+  border-radius: 999px;
+  background: var(--fb-surface);
+  font-family: var(--fb-font);
+  font-weight: 600;
+  color: var(--fb-blue);
+  cursor: pointer;
+  transition: background 180ms var(--ease-reveal), border-color 180ms var(--ease-reveal);
+}
+
+.showMoreButton:hover,
+.showMoreButton:focus-visible {
+  background: var(--fb-bg);
+  border-color: var(--fb-blue);
 }
 
 @media (max-width: 899px) {
