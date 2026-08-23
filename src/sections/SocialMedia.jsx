@@ -10,6 +10,7 @@ import { useFacebookVideos } from "../hooks/useFacebookVideos";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useSectionRevealCircle } from "../hooks/useSectionRevealCircle";
 import { useZoomCompensation } from "../hooks/useZoomCompensation";
+import { loadFacebookSdk } from "../lib/facebookSdk";
 import { getSectionInfo } from "../lib/sectionRevealStore";
 import styles from "./SocialMedia.module.css";
 
@@ -26,6 +27,10 @@ const DESCRIPTION_TRUNCATE_LENGTH = 220;
 // Cards per row on desktop (matches .grid's 5-column layout) — also how many
 // more videos each "mehr" click reveals, one full row at a time.
 const GRID_COLUMNS = 5;
+// Matches .overlayVideo's designed width (60% of .overlayCard's 1100px) —
+// passed to the XFBML embed so Facebook renders the player at roughly its
+// real on-screen size instead of some unrelated default.
+const WATCH_VIDEO_WIDTH = 660;
 
 function formatRelativeTime(isoString) {
   if (!isoString) return "";
@@ -158,6 +163,44 @@ function VideoCard({ video, revealed, onOpen }) {
   );
 }
 
+// Renders the video via Facebook's XFBML plugin (not a raw iframe) so it
+// auto-sizes to the video's real aspect ratio — a plain iframe just stretches
+// to whatever CSS box it's given, leaving black bars wherever the box and
+// the video's own shape don't match. FB.XFBML.parse has to be called after
+// every mount/video change since these divs aren't in the page's initial
+// HTML for the SDK to auto-discover.
+function FacebookVideoEmbed({ permalinkUrl }) {
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (!permalinkUrl) return undefined;
+    let cancelled = false;
+
+    loadFacebookSdk().then((FB) => {
+      if (cancelled || !containerRef.current) return;
+      FB.XFBML.parse(containerRef.current);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [permalinkUrl]);
+
+  return (
+    <div ref={containerRef} className={styles.overlayVideo}>
+      {permalinkUrl && (
+        <div
+          className="fb-video"
+          data-href={permalinkUrl}
+          data-width={WATCH_VIDEO_WIDTH}
+          data-show-text="false"
+          data-autoplay="true"
+        />
+      )}
+    </div>
+  );
+}
+
 // Desktop-only "watch" view: the video plays large on the left in Facebook's
 // own embed player, the post's full text sits in a scrollable panel on the
 // right. Same overlay technique as CategoryCoverflow's enlarged product card
@@ -188,20 +231,7 @@ function VideoModal({ video, onClose }) {
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.zoomLock} style={{ transform: `scale(${zoomScale})` }}>
         <div className={styles.overlayCard} onClick={(e) => e.stopPropagation()}>
-          <div className={styles.overlayVideo}>
-            {video.permalinkUrl && (
-              <iframe
-                className={styles.overlayVideoFrame}
-                src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
-                  video.permalinkUrl
-                )}&show_text=false&autoplay=true`}
-                title="Facebook-Video"
-                allow="autoplay; encrypted-media; picture-in-picture; web-share"
-                allowFullScreen
-                frameBorder="0"
-              />
-            )}
-          </div>
+          <FacebookVideoEmbed permalinkUrl={video.permalinkUrl} />
           <div className={styles.overlaySide}>
             <div className={styles.cardHeader}>
               <img
@@ -299,6 +329,10 @@ function FacebookVideoRow({ revealed, isStacked }) {
   }
 
   const visibleVideos = videos.slice(0, visibleCount);
+  // Once every fetched video is showing, the same button collapses the grid
+  // straight back down to one row instead of just disappearing — clicking it
+  // again pages back through one row at a time from there.
+  const canToggle = hasMore || videos.length > GRID_COLUMNS;
 
   return (
     <div className={styles.gridWrap}>
@@ -307,13 +341,15 @@ function FacebookVideoRow({ revealed, isStacked }) {
           <VideoCard key={video.id} video={video} revealed={revealed} onOpen={setActiveVideo} />
         ))}
       </ul>
-      {hasMore && (
+      {canToggle && (
         <button
           type="button"
           className={styles.showMoreButton}
-          onClick={() => setVisibleCount((count) => count + GRID_COLUMNS)}
+          onClick={() =>
+            setVisibleCount((count) => (hasMore ? count + GRID_COLUMNS : GRID_COLUMNS))
+          }
         >
-          mehr
+          {hasMore ? "mehr" : "weniger"}
         </button>
       )}
       {activeVideo && <VideoModal video={activeVideo} onClose={() => setActiveVideo(null)} />}

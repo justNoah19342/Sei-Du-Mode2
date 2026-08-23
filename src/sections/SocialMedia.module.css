@@ -323,7 +323,22 @@
    shared "product-overlay-open" body class). Own @keyframes names (rather
    than reusing those files' identical overlayFade/overlayCardIn) just to
    keep this module's globals independent of theirs. */
+/* Redeclares .section's --fb-* custom properties: createPortal moves this
+   whole overlay to be a direct child of <body>, outside .section's subtree,
+   so it can no longer inherit them from there — every var(--fb-*) reference
+   inside the portal (including the reused .cardHeader/.actionsRow markup)
+   would otherwise silently resolve to nothing. */
 .overlay {
+  --fb-blue: #1877f2;
+  --fb-bg: #f0f2f5;
+  --fb-surface: #ffffff;
+  --fb-text: #050505;
+  --fb-text-muted: #65676b;
+  --fb-border: #ced0d4;
+  --fb-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --fb-radius-card: 12px;
+  --fb-radius-thumb: 8px;
+
   position: fixed;
   inset: 0;
   display: flex;
@@ -345,7 +360,6 @@
   display: flex;
   width: 1100px;
   max-width: 92vw;
-  height: 640px;
   max-height: 90vh;
   background: var(--fb-surface);
   border-radius: var(--fb-radius-card);
@@ -354,17 +368,17 @@
   animation: fbOverlayCardIn 220ms var(--ease-reveal);
 }
 
+/* No fixed height: the box sizes to whichever side ends up taller (the
+   XFBML embed's real aspect ratio vs. the description's length) and
+   .overlaySide/.overlayVideo center their own content within that height. */
 .overlayVideo {
   flex: 1 1 60%;
   min-width: 0;
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: #000;
-}
-
-.overlayVideoFrame {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border: 0;
 }
 
 .overlaySide {
@@ -373,7 +387,12 @@
   flex: 1 1 40%;
   min-width: 320px;
   max-width: 420px;
+  max-height: 90vh;
   overflow-y: auto;
+  /* Explicit, not just inherited from .overlayCard — this panel sits over
+     the blurred backdrop and needs its own opaque paint so the description
+     stays legible instead of showing the blur through it. */
+  background: var(--fb-surface);
 }
 
 .overlayDescription {
@@ -409,7 +428,6 @@
   .overlayCard {
     flex-direction: column;
     width: 640px;
-    height: auto;
     max-height: 92vh;
   }
 
