@@ -27,12 +27,12 @@ async function handleFacebookVideos(env) {
   // /videos alone misses Reels, so both edges are fetched and merged.
   const videosUrl = new URL(`https://graph.facebook.com/${GRAPH_API_VERSION}/${pageId}/videos`);
   videosUrl.searchParams.set("fields", "id,permalink_url,picture,created_time,description");
-  videosUrl.searchParams.set("limit", "15");
+  videosUrl.searchParams.set("limit", "30");
   videosUrl.searchParams.set("access_token", accessToken);
 
   const reelsUrl = new URL(`https://graph.facebook.com/${GRAPH_API_VERSION}/${pageId}/video_reels`);
   reelsUrl.searchParams.set("fields", "id,permalink_url,picture,created_time,description");
-  reelsUrl.searchParams.set("limit", "15");
+  reelsUrl.searchParams.set("limit", "30");
   reelsUrl.searchParams.set("access_token", accessToken);
 
   let videosResponse, reelsResponse;
@@ -57,7 +57,7 @@ async function handleFacebookVideos(env) {
 
   const videos = [...byId.values()]
     .sort((a, b) => new Date(b.created_time) - new Date(a.created_time))
-    .slice(0, 10)
+    .slice(0, 30)
     .map((video) => ({
       id: video.id,
       thumbnail: video.picture || null,

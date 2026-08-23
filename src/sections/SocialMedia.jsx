@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { FacebookLogo, Heart, Play, ShareNetwork } from "@phosphor-icons/react";
@@ -23,9 +23,9 @@ const ENTRANCE_EASE = [0.25, 0.46, 0.45, 0.94];
 // the character count that fills the card's 5-line clamp at its typical
 // width, so the toggle only appears when the clamp would actually kick in.
 const DESCRIPTION_TRUNCATE_LENGTH = 220;
-// How many rows (in card-heights) peek through above the section-wide "mehr"
-// button before the rest of the grid is hidden behind the blur mask.
-const COLLAPSED_ROW_COUNT = 1.5;
+// Cards per row on desktop (matches .grid's 5-column layout) — also how many
+// more videos each "mehr" click reveals, one full row at a time.
+const GRID_COLUMNS = 5;
 
 function formatRelativeTime(isoString) {
   if (!isoString) return "";
@@ -264,37 +264,9 @@ function FacebookHeading() {
 
 function FacebookVideoRow({ revealed, isStacked }) {
   const { status, videos } = useFacebookVideos();
-  const [showAll, setShowAll] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(GRID_COLUMNS);
   const [activeVideo, setActiveVideo] = useState(null);
-  const gridRef = useRef(null);
-  const [collapsedHeight, setCollapsedHeight] = useState(null);
-  const [fullHeight, setFullHeight] = useState(null);
-  const hasMore = videos.length > 5;
-
-  // Measures the actual rendered row height (cards are 9:16 thumbnails, so
-  // their height depends on the current column width) to derive a pixel
-  // max-height showing ~1.5 rows before the fade/blur cutoff, and the grid's
-  // true full height so expanding can transition to a real value instead of
-  // jumping to "none".
-  useLayoutEffect(() => {
-    if (isStacked || !hasMore || !gridRef.current) return undefined;
-
-    const measure = () => {
-      const grid = gridRef.current;
-      if (!grid) return;
-      const firstCard = grid.querySelector(`.${styles.card}`);
-      if (!firstCard) return;
-      const rowHeight = firstCard.getBoundingClientRect().height;
-      const gapPx = parseFloat(getComputedStyle(grid).rowGap) || 0;
-      setCollapsedHeight(rowHeight * COLLAPSED_ROW_COUNT + gapPx * (COLLAPSED_ROW_COUNT - 1));
-      setFullHeight(grid.scrollHeight);
-    };
-
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(gridRef.current);
-    return () => observer.disconnect();
-  }, [hasMore, isStacked, videos.length]);
+  const hasMore = visibleCount < videos.length;
 
   // "not configured" / errored / empty all collapse to the same "nothing to
   // show yet" state rather than a broken-looking empty grid — the Meta app +
@@ -326,27 +298,22 @@ function FacebookVideoRow({ revealed, isStacked }) {
     return <VideoCoverflow videos={videos} />;
   }
 
-  const collapsedActive = hasMore && !showAll && collapsedHeight != null;
+  const visibleVideos = videos.slice(0, visibleCount);
 
   return (
     <div className={styles.gridWrap}>
-      <ul
-        ref={gridRef}
-        className={styles.grid}
-        style={
-          hasMore
-            ? { maxHeight: showAll ? fullHeight ?? undefined : collapsedHeight ?? undefined, overflow: "hidden" }
-            : undefined
-        }
-      >
-        {videos.map((video) => (
+      <ul className={styles.grid}>
+        {visibleVideos.map((video) => (
           <VideoCard key={video.id} video={video} revealed={revealed} onOpen={setActiveVideo} />
         ))}
       </ul>
-      {collapsedActive && <div className={styles.fadeMask} aria-hidden="true" />}
       {hasMore && (
-        <button type="button" className={styles.showMoreButton} onClick={() => setShowAll((value) => !value)}>
-          {showAll ? "weniger" : "mehr"}
+        <button
+          type="button"
+          className={styles.showMoreButton}
+          onClick={() => setVisibleCount((count) => count + GRID_COLUMNS)}
+        >
+          mehr
         </button>
       )}
       {activeVideo && <VideoModal video={activeVideo} onClose={() => setActiveVideo(null)} />}

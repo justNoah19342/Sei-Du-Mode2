@@ -107,7 +107,6 @@
   grid-template-columns: repeat(5, 1fr);
   gap: var(--space-5);
   margin-top: var(--space-7);
-  transition: max-height 500ms var(--ease-reveal);
   /* Grid tracks stay their own width even when a track has no item in it, so
      with fewer than 5 videos the real cards simply sit left-aligned instead
      of stretching to fill the row. The same "empty tracks keep their width"
@@ -296,23 +295,6 @@
 
 .iconButton[aria-pressed="true"] {
   color: #e0245e;
-}
-
-/* Sits over the bottom of the collapsed grid to blur/fade the partial second
-   row into the section background, so the cut-off reads as an intentional
-   transition rather than content just stopping mid-card. */
-.fadeMask {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 140px;
-  pointer-events: none;
-  background: linear-gradient(to bottom, transparent, var(--fb-bg) 85%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, black 70%);
-  mask-image: linear-gradient(to bottom, transparent, black 70%);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
 }
 
 .showMoreButton {
