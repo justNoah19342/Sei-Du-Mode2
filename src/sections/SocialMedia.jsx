@@ -1,6 +1,7 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, useInView, useReducedMotion } from "framer-motion";
-import { FacebookLogo, Heart, Play } from "@phosphor-icons/react";
+import { FacebookLogo, Heart, Play, ShareNetwork } from "@phosphor-icons/react";
 import logo from "../assets/logo.jpeg";
 import SectionHeading from "../components/SectionHeading";
 import SectionReveal from "../components/SectionReveal";
@@ -8,6 +9,7 @@ import VideoCoverflow from "../components/VideoCoverflow";
 import { useFacebookVideos } from "../hooks/useFacebookVideos";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useSectionRevealCircle } from "../hooks/useSectionRevealCircle";
+import { useZoomCompensation } from "../hooks/useZoomCompensation";
 import { getSectionInfo } from "../lib/sectionRevealStore";
 import styles from "./SocialMedia.module.css";
 
@@ -17,9 +19,10 @@ const ENTRANCE_DURATION = 0.6;
 // Mirrors --ease-reveal's curve — hardcoded because Framer Motion transition
 // configs are plain JS values, not CSS custom properties.
 const ENTRANCE_EASE = [0.25, 0.46, 0.45, 0.94];
-// Descriptions longer than this collapse behind a "mehr" toggle, matching
-// roughly the cutoff length shown in the reference design.
-const DESCRIPTION_TRUNCATE_LENGTH = 140;
+// Descriptions longer than this collapse behind a "mehr" toggle — roughly
+// the character count that fills the card's 5-line clamp at its typical
+// width, so the toggle only appears when the clamp would actually kick in.
+const DESCRIPTION_TRUNCATE_LENGTH = 220;
 // How many rows (in card-heights) peek through above the section-wide "mehr"
 // button before the rest of the grid is hidden behind the blur mask.
 const COLLAPSED_ROW_COUNT = 1.5;
@@ -42,13 +45,47 @@ function formatRelativeTime(isoString) {
   return `vor ${diffYears} Jahr${diffYears === 1 ? "" : "en"}`;
 }
 
-function VideoCard({ video, revealed }) {
+// Facebook's own share dialog — no extra API scopes needed, unlike an actual
+// re-post to the Page. Clearing the popup's `opener` (rather than passing
+// "noopener" in the features string, which isn't part of the actual spec)
+// is what stops the popup from reaching back into this window.
+function shareVideo(video) {
+  if (!video.permalinkUrl) return;
+  const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(video.permalinkUrl)}`;
+  const popup = window.open(shareUrl, "facebook-share", "width=580,height=470");
+  if (popup) popup.opener = null;
+}
+
+function VideoActions({ liked, onToggleLike, video }) {
+  return (
+    <div className={styles.actionsRow}>
+      <button
+        type="button"
+        className={styles.iconButton}
+        aria-pressed={liked}
+        aria-label="Gefällt mir"
+        onClick={onToggleLike}
+      >
+        <Heart weight={liked ? "fill" : "regular"} size={20} />
+      </button>
+      <button
+        type="button"
+        className={styles.iconButton}
+        aria-label="Teilen"
+        onClick={() => shareVideo(video)}
+      >
+        <ShareNetwork size={20} />
+      </button>
+    </div>
+  );
+}
+
+function VideoCard({ video, revealed, onOpen }) {
   // Tracks whether the one-time scroll entrance has finished, so a later
   // layout change (e.g. resizing the window across a grid breakpoint) snaps
   // instantly instead of replaying the slide — layout stays "live" for the
   // component's whole lifetime otherwise.
   const [hasSettled, setHasSettled] = useState(false);
-  const [playing, setPlaying] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
   const [liked, setLiked] = useState(false);
   const isStacked = !revealed;
@@ -83,11 +120,29 @@ function VideoCard({ video, revealed }) {
         <FacebookLogo className={styles.platformIcon} weight="fill" size={20} aria-hidden="true" />
       </div>
 
+      <div className={styles.thumbWrap}>
+        <button
+          type="button"
+          className={styles.thumbButton}
+          aria-label="Facebook-Video ansehen"
+          onClick={() => onOpen(video)}
+        >
+          <div
+            className={styles.thumb}
+            style={video.thumbnail ? { backgroundImage: `url(${video.thumbnail})` } : undefined}
+          >
+            <span className={styles.playBadge}>
+              <Play className={styles.playIcon} size={18} weight="fill" />
+            </span>
+          </div>
+        </button>
+      </div>
+
+      <VideoActions liked={liked} onToggleLike={() => setLiked((value) => !value)} video={video} />
+
       {description && (
-        <p className={styles.description}>
-          {isLongDescription && !descExpanded
-            ? `${description.slice(0, DESCRIPTION_TRUNCATE_LENGTH).trimEnd()}…`
-            : description}
+        <p className={`${styles.description} ${descExpanded ? "" : styles.descriptionClamped}`}>
+          {description}
           {isLongDescription && (
             <button
               type="button"
@@ -99,59 +154,82 @@ function VideoCard({ video, revealed }) {
           )}
         </p>
       )}
-
-      {/* The scale-on-hover lives on this inner motion.button, not the outer
-         motion.li — the li's layout prop already owns its own transform for
-         the entrance FLIP, so a transform (CSS or whileHover) placed there
-         gets silently overridden. This element also receives real focus
-         itself (rather than needing :focus-within on an ancestor), which is
-         what whileFocus actually listens for. */}
-      <div className={styles.thumbWrap}>
-        {playing && video.permalinkUrl ? (
-          <iframe
-            className={styles.videoFrame}
-            src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
-              video.permalinkUrl
-            )}&show_text=false&autoplay=true`}
-            title="Facebook-Video"
-            allow="autoplay; encrypted-media; picture-in-picture; web-share"
-            allowFullScreen
-            frameBorder="0"
-          />
-        ) : (
-          <motion.button
-            type="button"
-            className={styles.thumbButton}
-            aria-label="Facebook-Video abspielen"
-            onClick={() => setPlaying(true)}
-            whileHover={{ scale: 1.03 }}
-            whileFocus={{ scale: 1.03 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-          >
-            <div
-              className={styles.thumb}
-              style={video.thumbnail ? { backgroundImage: `url(${video.thumbnail})` } : undefined}
-            >
-              <span className={styles.playBadge}>
-                <Play className={styles.playIcon} size={18} weight="fill" />
-              </span>
-            </div>
-          </motion.button>
-        )}
-      </div>
-
-      <div className={styles.cardFooter}>
-        <button
-          type="button"
-          className={styles.likeButton}
-          aria-pressed={liked}
-          onClick={() => setLiked((value) => !value)}
-        >
-          <Heart weight={liked ? "fill" : "regular"} size={18} />
-          Gefällt mir
-        </button>
-      </div>
     </motion.li>
+  );
+}
+
+// Desktop-only "watch" view: the video plays large on the left in Facebook's
+// own embed player, the post's full text sits in a scrollable panel on the
+// right. Same overlay technique as CategoryCoverflow's enlarged product card
+// and AppointmentPicker's calendar box — blurred, click-outside-to-close,
+// scroll-locked — reusing the shared "product-overlay-open" body class so it
+// gets the same #root blur fallback and chrome-hiding rules for free.
+function VideoModal({ video, onClose }) {
+  const zoomScale = useZoomCompensation();
+  const [liked, setLiked] = useState(false);
+
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    document.body.style.overflow = "hidden";
+    document.body.classList.add("product-overlay-open");
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = "";
+      document.body.classList.remove("product-overlay-open");
+    };
+  }, [onClose]);
+
+  const description = video.description || "";
+
+  return createPortal(
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.zoomLock} style={{ transform: `scale(${zoomScale})` }}>
+        <div className={styles.overlayCard} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.overlayVideo}>
+            {video.permalinkUrl && (
+              <iframe
+                className={styles.overlayVideoFrame}
+                src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
+                  video.permalinkUrl
+                )}&show_text=false&autoplay=true`}
+                title="Facebook-Video"
+                allow="autoplay; encrypted-media; picture-in-picture; web-share"
+                allowFullScreen
+                frameBorder="0"
+              />
+            )}
+          </div>
+          <div className={styles.overlaySide}>
+            <div className={styles.cardHeader}>
+              <img
+                src={logo}
+                alt="SEI DU Mode, Boutique in Neunkirchen-Seelscheid"
+                className={styles.avatar}
+              />
+              <div className={styles.cardHeaderText}>
+                <a
+                  href={video.permalinkUrl || undefined}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.pageName}
+                >
+                  Sei Du Mode
+                </a>
+                <span className={styles.timestamp}>{formatRelativeTime(video.createdTime)}</span>
+              </div>
+            </div>
+            {description && <p className={styles.overlayDescription}>{description}</p>}
+            <div className={styles.overlayActions}>
+              <VideoActions liked={liked} onToggleLike={() => setLiked((value) => !value)} video={video} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 }
 
@@ -187,6 +265,7 @@ function FacebookHeading() {
 function FacebookVideoRow({ revealed, isStacked }) {
   const { status, videos } = useFacebookVideos();
   const [showAll, setShowAll] = useState(false);
+  const [activeVideo, setActiveVideo] = useState(null);
   const gridRef = useRef(null);
   const [collapsedHeight, setCollapsedHeight] = useState(null);
   const [fullHeight, setFullHeight] = useState(null);
@@ -240,9 +319,9 @@ function FacebookVideoRow({ revealed, isStacked }) {
 
   // ≤899px: horizontal swipe carousel (same touch+arrow mechanism as the
   // Sortiment section's CategoryCoverflow) instead of a cramped 1-/2-column
-  // grid. The stack→slide grid entrance below is desktop-only, so the
-  // carousel never needs a "revealed" gate — it has its own always-on
-  // touch/click interaction instead of a one-time scroll reveal.
+  // grid. The stack→slide grid entrance below — and the desktop "watch"
+  // modal — are desktop-only, so the carousel keeps its previous, simpler
+  // tap-to-open-on-Facebook behavior instead.
   if (isStacked) {
     return <VideoCoverflow videos={videos} />;
   }
@@ -261,7 +340,7 @@ function FacebookVideoRow({ revealed, isStacked }) {
         }
       >
         {videos.map((video) => (
-          <VideoCard key={video.id} video={video} revealed={revealed} />
+          <VideoCard key={video.id} video={video} revealed={revealed} onOpen={setActiveVideo} />
         ))}
       </ul>
       {collapsedActive && <div className={styles.fadeMask} aria-hidden="true" />}
@@ -270,6 +349,7 @@ function FacebookVideoRow({ revealed, isStacked }) {
           {showAll ? "weniger" : "mehr"}
         </button>
       )}
+      {activeVideo && <VideoModal video={activeVideo} onClose={() => setActiveVideo(null)} />}
     </div>
   );
 }

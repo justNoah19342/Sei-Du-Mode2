@@ -177,11 +177,18 @@
 
 .description {
   margin: 0;
-  padding: var(--space-2) var(--space-3) 0;
+  padding: var(--space-2) var(--space-3) var(--space-3);
   font-family: var(--fb-font);
   font-size: 0.85rem;
   line-height: 1.4;
   color: var(--fb-text);
+}
+
+.descriptionClamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .moreButton {
@@ -214,6 +221,10 @@
   cursor: pointer;
 }
 
+/* No hover-zoom on the thumbnail itself — the desktop "watch" view (opened
+   on click, see .overlay below) is the enlargement affordance now, so the
+   card no longer needs its own zoom-in-on-hover cue. */
+
 .thumb {
   position: relative;
   aspect-ratio: 9 / 16;
@@ -221,13 +232,6 @@
   background-size: cover;
   background-position: center;
   overflow: hidden;
-}
-
-.videoFrame {
-  display: block;
-  width: 100%;
-  aspect-ratio: 9 / 16;
-  border: 0;
 }
 
 .playBadge {
@@ -255,36 +259,42 @@
   color: var(--fb-blue);
 }
 
-.cardFooter {
+.actionsRow {
   display: flex;
   align-items: center;
-  margin-top: auto;
-  padding: var(--space-2) var(--space-3);
+  gap: 2px;
+  padding: var(--space-1) var(--space-2);
   border-top: 1px solid var(--fb-border);
 }
 
-.likeButton {
+/* Modal-only: pins the like/share row to the bottom of the scrollable side
+   panel regardless of description length, same purpose .cardFooter's old
+   margin-top: auto served in the card. */
+.overlayActions {
+  margin-top: auto;
+}
+
+.iconButton {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
   border: none;
-  border-radius: 6px;
+  border-radius: 50%;
   background: none;
-  font-family: var(--fb-font);
-  font-size: 0.85rem;
-  font-weight: 600;
   color: var(--fb-text-muted);
   cursor: pointer;
   transition: background 150ms var(--ease-reveal), color 150ms var(--ease-reveal);
 }
 
-.likeButton:hover,
-.likeButton:focus-visible {
+.iconButton:hover,
+.iconButton:focus-visible {
   background: var(--fb-bg);
 }
 
-.likeButton[aria-pressed="true"] {
+.iconButton[aria-pressed="true"] {
   color: #e0245e;
 }
 
@@ -323,6 +333,119 @@
 .showMoreButton:focus-visible {
   background: var(--fb-bg);
   border-color: var(--fb-blue);
+}
+
+/* Desktop "watch" modal — same overlay/zoomLock/overlayCard technique as
+   CategoryCoverflow's enlarged product card and AppointmentPicker's calendar
+   box (blurred backdrop, click-outside-to-close, scroll-locked via the
+   shared "product-overlay-open" body class). Own @keyframes names (rather
+   than reusing those files' identical overlayFade/overlayCardIn) just to
+   keep this module's globals independent of theirs. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+  background: rgba(5, 5, 5, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 100;
+  animation: fbOverlayFade 220ms var(--ease-reveal);
+}
+
+.zoomLock {
+  transform-origin: center;
+}
+
+.overlayCard {
+  display: flex;
+  width: 1100px;
+  max-width: 92vw;
+  height: 640px;
+  max-height: 90vh;
+  background: var(--fb-surface);
+  border-radius: var(--fb-radius-card);
+  overflow: hidden;
+  font-family: var(--fb-font);
+  animation: fbOverlayCardIn 220ms var(--ease-reveal);
+}
+
+.overlayVideo {
+  flex: 1 1 60%;
+  min-width: 0;
+  background: #000;
+}
+
+.overlayVideoFrame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.overlaySide {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 40%;
+  min-width: 320px;
+  max-width: 420px;
+  overflow-y: auto;
+}
+
+.overlayDescription {
+  margin: 0;
+  padding: var(--space-3);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--fb-text);
+  white-space: pre-wrap;
+}
+
+@keyframes fbOverlayFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fbOverlayCardIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 1099px) {
+  .overlayCard {
+    flex-direction: column;
+    width: 640px;
+    height: auto;
+    max-height: 92vh;
+  }
+
+  .overlayVideo {
+    flex: none;
+    aspect-ratio: 16 / 9;
+  }
+
+  .overlaySide {
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .overlayCard {
+    animation: none;
+  }
 }
 
 @media (max-width: 899px) {
