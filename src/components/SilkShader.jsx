@@ -59,11 +59,19 @@ const fragmentShaderSource = `
     // red silk on black.
     float lum = s + 0.7 * d;
     lum *= 1.0 - max(0.0, 1.8 * d);
-    lum = clamp(pow(max(lum, 0.0), 0.55), 0.0, 1.0);
+    // Measured (via a temporary debug readout) where this fold pattern's
+    // magnitude actually sits: ~85% of pixels are under 5, the rest spread
+    // fairly evenly up to ~10 with almost nothing above it. A threshold
+    // this high — instead of the naive pow()/clamp on the raw value, which
+    // saturated to white across ~20-25% of the canvas — keeps only the
+    // brightest ridge of that spread as the thin white "thread" highlight,
+    // with a narrow smoothstep band (not a hard cutoff) so its edges
+    // anti-alias instead of looking jagged.
+    float pattern = smoothstep(7.0, 9.5, max(lum, 0.0));
 
     vec3 blueColor = vec3(0.0941, 0.4667, 0.9490);
     vec3 whiteColor = vec3(1.0);
-    vec3 color = mix(blueColor, whiteColor, lum);
+    vec3 color = mix(blueColor, whiteColor, pattern);
 
     gl_FragColor = vec4(color, 1.0);
   }
@@ -135,6 +143,14 @@ export default function SilkShader({ className }) {
     };
 
     handleResize();
+    // A plain window "resize" listener only fires on actual viewport
+    // changes — it never catches the canvas's own box growing because
+    // "mehr" revealed another row of cards underneath it. Without this, the
+    // canvas keeps its old (smaller) drawing-buffer resolution while its CSS
+    // box grows, so the browser just stretches that fixed bitmap to fit
+    // rather than the shader rendering more pattern into the new space.
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(canvas);
     window.addEventListener("resize", handleResize);
 
     const drawFrame = (elapsedSeconds) => {
@@ -160,6 +176,7 @@ export default function SilkShader({ className }) {
 
     return () => {
       if (animationId) cancelAnimationFrame(animationId);
+      resizeObserver.disconnect();
       window.removeEventListener("resize", handleResize);
     };
   }, []);
