@@ -26,12 +26,12 @@ async function handleFacebookVideos(env) {
   // Regular videos and Reels are separate content types on the Graph API —
   // /videos alone misses Reels, so both edges are fetched and merged.
   const videosUrl = new URL(`https://graph.facebook.com/${GRAPH_API_VERSION}/${pageId}/videos`);
-  videosUrl.searchParams.set("fields", "id,permalink_url,picture,created_time,description");
+  videosUrl.searchParams.set("fields", "id,permalink_url,picture,created_time,description,width,height");
   videosUrl.searchParams.set("limit", "30");
   videosUrl.searchParams.set("access_token", accessToken);
 
   const reelsUrl = new URL(`https://graph.facebook.com/${GRAPH_API_VERSION}/${pageId}/video_reels`);
-  reelsUrl.searchParams.set("fields", "id,permalink_url,picture,created_time,description");
+  reelsUrl.searchParams.set("fields", "id,permalink_url,picture,created_time,description,width,height");
   reelsUrl.searchParams.set("limit", "30");
   reelsUrl.searchParams.set("access_token", accessToken);
 
@@ -64,6 +64,8 @@ async function handleFacebookVideos(env) {
       permalinkUrl: toAbsoluteUrl(video.permalink_url),
       description: video.description || "",
       createdTime: video.created_time || null,
+      width: video.width || null,
+      height: video.height || null,
     }));
 
   return jsonResponse({ videos }, 200, {

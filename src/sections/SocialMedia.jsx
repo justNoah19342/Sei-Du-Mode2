@@ -27,10 +27,12 @@ const DESCRIPTION_TRUNCATE_LENGTH = 220;
 // Cards per row on desktop (matches .grid's 5-column layout) — also how many
 // more videos each "mehr" click reveals, one full row at a time.
 const GRID_COLUMNS = 5;
-// Matches .overlayVideo's designed width (60% of .overlayCard's 1100px) —
-// passed to the XFBML embed so Facebook renders the player at roughly its
-// real on-screen size instead of some unrelated default.
-const WATCH_VIDEO_WIDTH = 660;
+// The watch-modal's video panel is always this fixed shape — a "normal"
+// landscape Facebook video frame — regardless of the actual clip's aspect
+// ratio, so the window never grows/shrinks per video. Anything that doesn't
+// natively fill it gets letterboxed (short/wide clips: bars top and bottom)
+// or pillarboxed (tall/narrow clips: bars left and right) against it.
+const WATCH_BOX_ASPECT = 16 / 9;
 
 function formatRelativeTime(isoString) {
   if (!isoString) return "";
@@ -163,18 +165,41 @@ function VideoCard({ video, revealed, onOpen }) {
   );
 }
 
-// Renders the video via Facebook's XFBML plugin (not a raw iframe) so it
-// auto-sizes to the video's real aspect ratio — a plain iframe just stretches
-// to whatever CSS box it's given, leaving black bars wherever the box and
-// the video's own shape don't match. FB.XFBML.parse has to be called after
-// every mount/video change since these divs aren't in the page's initial
-// HTML for the SDK to auto-discover.
-function FacebookVideoEmbed({ permalinkUrl }) {
+// Renders the video via Facebook's XFBML plugin (not a raw iframe) inside a
+// fixed 16:9 box that never changes size or shape between videos. The plugin
+// only ever takes a `width` and derives its own height from the video's real
+// aspect ratio — it has no notion of "fit inside this height too" — so this
+// picks whichever axis is the tighter constraint itself (matching CSS
+// `object-fit: contain`) and passes THAT as data-width: a short/wide clip is
+// constrained by the box's width (leaving black bars above/below), a
+// tall/narrow one by the box's height (leaving black bars left/right). The
+// fb-video div is built imperatively rather than left as JSX so it survives
+// untouched across re-renders — React must never diff/replace it once
+// Facebook's own script has taken it over. FB.XFBML.parse has to be called
+// again after every mount/video change since these divs aren't part of the
+// initial page HTML the SDK auto-discovers.
+function FacebookVideoEmbed({ video }) {
   const containerRef = useRef(null);
 
   useEffect(() => {
-    if (!permalinkUrl) return undefined;
+    const container = containerRef.current;
+    if (!video.permalinkUrl || !container) return undefined;
     let cancelled = false;
+
+    const boxWidth = container.getBoundingClientRect().width;
+    const boxHeight = boxWidth / WATCH_BOX_ASPECT;
+    const nativeAspect = video.width && video.height ? video.width / video.height : WATCH_BOX_ASPECT;
+    const dataWidth = Math.round(
+      nativeAspect >= WATCH_BOX_ASPECT ? boxWidth : boxHeight * nativeAspect
+    );
+
+    const embed = document.createElement("div");
+    embed.className = "fb-video";
+    embed.dataset.href = video.permalinkUrl;
+    embed.dataset.width = String(dataWidth);
+    embed.dataset.showText = "false";
+    embed.dataset.autoplay = "true";
+    container.replaceChildren(embed);
 
     loadFacebookSdk().then((FB) => {
       if (cancelled || !containerRef.current) return;
@@ -184,21 +209,9 @@ function FacebookVideoEmbed({ permalinkUrl }) {
     return () => {
       cancelled = true;
     };
-  }, [permalinkUrl]);
+  }, [video.permalinkUrl, video.width, video.height]);
 
-  return (
-    <div ref={containerRef} className={styles.overlayVideo}>
-      {permalinkUrl && (
-        <div
-          className="fb-video"
-          data-href={permalinkUrl}
-          data-width={WATCH_VIDEO_WIDTH}
-          data-show-text="false"
-          data-autoplay="true"
-        />
-      )}
-    </div>
-  );
+  return <div ref={containerRef} className={styles.overlayVideo} />;
 }
 
 // Desktop-only "watch" view: the video plays large on the left in Facebook's
@@ -231,7 +244,7 @@ function VideoModal({ video, onClose }) {
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.zoomLock} style={{ transform: `scale(${zoomScale})` }}>
         <div className={styles.overlayCard} onClick={(e) => e.stopPropagation()}>
-          <FacebookVideoEmbed permalinkUrl={video.permalinkUrl} />
+          <FacebookVideoEmbed video={video} />
           <div className={styles.overlaySide}>
             <div className={styles.cardHeader}>
               <img

@@ -358,6 +358,11 @@
 
 .overlayCard {
   display: flex;
+  /* flex-start, not the flexbox default (stretch) — .overlayVideo's height
+     is fixed by its own aspect-ratio and must never be stretched to match
+     .overlaySide's (content-dependent) height or vice versa. Each sizes
+     itself independently; the row's own height is just whichever is taller. */
+  align-items: flex-start;
   width: 1100px;
   max-width: 92vw;
   max-height: 90vh;
@@ -368,16 +373,19 @@
   animation: fbOverlayCardIn 220ms var(--ease-reveal);
 }
 
-/* No fixed height: the box sizes to whichever side ends up taller (the
-   XFBML embed's real aspect ratio vs. the description's length) and
-   .overlaySide/.overlayVideo center their own content within that height. */
+/* Always this exact 16:9 shape regardless of the actual clip's aspect ratio
+   (see WATCH_BOX_ASPECT/FacebookVideoEmbed in SocialMedia.jsx) — the video
+   itself is sized to fit fully inside it, so whatever doesn't fill the box
+   shows as this black background: letterboxed top/bottom for short/wide
+   clips, pillarboxed left/right for tall/narrow ones. */
 .overlayVideo {
   flex: 1 1 60%;
   min-width: 0;
-  min-height: 320px;
+  aspect-ratio: 16 / 9;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   background: #000;
 }
 
