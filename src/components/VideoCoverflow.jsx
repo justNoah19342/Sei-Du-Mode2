@@ -1,5 +1,6 @@
-import { useRef, useState } from "react";
-import { CaretLeft, CaretRight, Play } from "@phosphor-icons/react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { CaretLeft, CaretRight } from "@phosphor-icons/react";
+import { VideoCard } from "./FacebookVideoCard";
 import styles from "./VideoCoverflow.module.css";
 
 // Same depth/fade recipe as CategoryCoverflow (Sortiment section) — only the
@@ -31,7 +32,7 @@ function buildSlots(n, offset) {
   return slots;
 }
 
-export default function VideoCoverflow({ videos }) {
+export default function VideoCoverflow({ videos, onOpen }) {
   const [offset, setOffset] = useState(0);
   const n = videos.length;
 
@@ -56,6 +57,26 @@ export default function VideoCoverflow({ videos }) {
     touchStartX.current = null;
   };
 
+  // The full VideoCard (header + thumb + actions + description) is a much
+  // taller, content-dependent shape than the old thumbnail-only slide, so
+  // the viewport can no longer just be a fixed 9:16 box — it measures the
+  // centered card's real rendered height instead and sizes itself to that,
+  // re-measuring whenever that card's own content (e.g. an expanded
+  // description) or width changes.
+  const centerCardRef = useRef(null);
+  const [viewportHeight, setViewportHeight] = useState(null);
+
+  useLayoutEffect(() => {
+    const card = centerCardRef.current;
+    if (!card) return undefined;
+
+    const measure = () => setViewportHeight(card.getBoundingClientRect().height);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, [offset]);
+
   if (n === 0) return null;
 
   const slots = buildSlots(n, offset);
@@ -64,6 +85,7 @@ export default function VideoCoverflow({ videos }) {
     <div className={styles.row}>
       <div
         className={styles.viewport}
+        style={viewportHeight ? { height: viewportHeight } : undefined}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -95,23 +117,13 @@ export default function VideoCoverflow({ videos }) {
                 pointerEvents: isCenter ? "auto" : "none",
               }}
             >
-              <a
-                href={video.permalinkUrl || undefined}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.thumbLink}
-                aria-label="Facebook-Video ansehen"
-                tabIndex={isCenter ? undefined : -1}
-              >
-                <div
-                  className={styles.thumb}
-                  style={video.thumbnail ? { backgroundImage: `url(${video.thumbnail})` } : undefined}
-                >
-                  <span className={styles.playBadge}>
-                    <Play className={styles.playIcon} size={18} weight="fill" />
-                  </span>
-                </div>
-              </a>
+              <ul className={styles.slideList} ref={isCenter ? centerCardRef : undefined}>
+                {/* revealed: true — the stack-then-slide scroll entrance is a
+                   desktop-grid-only effect; the carousel already has its own
+                   swipe-driven presentation and doesn't need cards starting
+                   pointer-events:none while off in a corner. */}
+                <VideoCard video={video} revealed onOpen={isCenter ? onOpen : () => {}} />
+              </ul>
             </div>
           );
         })}

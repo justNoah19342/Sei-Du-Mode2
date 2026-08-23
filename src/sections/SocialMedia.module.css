@@ -466,6 +466,39 @@
   }
 }
 
+/* Narrow phones: the desktop layout sizes the video panel off the card's
+   height (a true 9:16 frame, sidebar filling the rest of the width) — on a
+   ~375-430px-wide screen that leaves no room for the sidebar at all. Stacks
+   video-on-top-of-description instead, with the video now sized off the
+   card's (capped) WIDTH — FacebookVideoEmbed measures whatever shape this
+   produces directly rather than assuming a literal 9:16 box, so it still
+   letterboxes/pillarboxes correctly even though this is shorter than 9:16. */
+@media (max-width: 640px) {
+  .overlayCard {
+    flex-direction: column;
+    width: min(94vw, 400px);
+    height: auto;
+    max-height: 92vh;
+  }
+
+  .overlayVideo {
+    width: 100%;
+    height: auto;
+    max-height: 52vh;
+    aspect-ratio: 9 / 16;
+    flex: none;
+  }
+
+  .overlaySide {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    height: auto;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .overlay,
   .overlayCard {

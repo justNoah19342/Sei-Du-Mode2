@@ -12,12 +12,18 @@
 }
 
 .viewport {
-  --cf-width: 200px;
+  --cf-width: 260px;
   --cf-gap: var(--space-4);
   position: relative;
   width: var(--cf-width);
-  aspect-ratio: 9 / 16;
+  /* No fixed aspect-ratio — the full VideoCard (header + thumb + actions +
+     description) is a taller, content-dependent shape than the old
+     thumbnail-only slide, so VideoCoverflow.jsx measures the centered
+     card's real height and sets it here instead; this is just a sane
+     fallback before that first measurement lands. */
+  height: 460px;
   touch-action: pan-y;
+  transition: height 220ms var(--ease-reveal);
 }
 
 .slide {
@@ -25,44 +31,11 @@
   top: 0;
   left: 50%;
   width: var(--cf-width);
-  aspect-ratio: 9 / 16;
   transition: opacity 380ms var(--ease-reveal), transform 380ms var(--ease-reveal);
 }
 
-.thumbLink {
-  display: block;
-  height: 100%;
-}
-
-.thumb {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: var(--fb-radius-card, 12px);
-  background: linear-gradient(135deg, var(--fb-bg, #f0f2f5), #dadde1);
-  background-size: cover;
-  background-position: center;
-  border: 1px solid var(--fb-border, #ced0d4);
-  overflow: hidden;
-}
-
-.playBadge {
-  position: absolute;
-  left: var(--space-3);
-  bottom: var(--space-3);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid var(--fb-border, #ced0d4);
-  backdrop-filter: blur(4px);
-}
-
-.playIcon {
-  color: var(--fb-blue, #1877f2);
+.slideList {
+  list-style: none;
 }
 
 /* Meta's own utility-button spec (see design-md/meta/DESIGN.md
@@ -108,12 +81,13 @@
 
 @media (max-width: 599px) {
   .viewport {
-    --cf-width: 160px;
+    --cf-width: 220px;
     --cf-gap: var(--space-3);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .viewport,
   .slide {
     transition: none;
   }
