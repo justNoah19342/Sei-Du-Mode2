@@ -358,14 +358,16 @@
 
 .overlayCard {
   display: flex;
-  /* flex-start, not the flexbox default (stretch) — .overlayVideo's height
-     is fixed by its own aspect-ratio and must never be stretched to match
-     .overlaySide's (content-dependent) height or vice versa. Each sizes
-     itself independently; the row's own height is just whichever is taller. */
-  align-items: flex-start;
-  width: 1100px;
+  /* Fixed height (not width) — a 9:16 video panel is tall, not wide, so the
+     card's overall size is now driven by how tall it's allowed to get, with
+     both the video's and the sidebar's widths following from that. Normally
+     that's just 90vh, but on a narrow-but-tall desktop window a 9:16 panel
+     that tall would need more width than 92vw has room for once the
+     sidebar's own 320px minimum is added — the second min() term caps the
+     height to whatever still fits that width budget, so .overlayVideo (which
+     doesn't flex-shrink) never gets clipped by .overlayCard's overflow:hidden. */
+  height: min(90vh, calc((92vw - 320px) * 16 / 9));
   max-width: 92vw;
-  max-height: 90vh;
   background: var(--fb-surface);
   border-radius: var(--fb-radius-card);
   overflow: hidden;
@@ -373,15 +375,17 @@
   animation: fbOverlayCardIn 220ms var(--ease-reveal);
 }
 
-/* Always this exact 16:9 shape regardless of the actual clip's aspect ratio
-   (see WATCH_BOX_ASPECT/FacebookVideoEmbed in SocialMedia.jsx) — the video
-   itself is sized to fit fully inside it, so whatever doesn't fill the box
-   shows as this black background: letterboxed top/bottom for short/wide
-   clips, pillarboxed left/right for tall/narrow ones. */
+/* Always this exact 9:16 "Reels" shape regardless of the actual clip's
+   aspect ratio (see WATCH_BOX_ASPECT/FacebookVideoEmbed in SocialMedia.jsx)
+   — sized off the card's full height, with width following from the 9:16
+   ratio. The video itself is sized to fit fully inside it, so whatever
+   doesn't fill the box shows as this black background: letterboxed
+   top/bottom for short/wide clips (like ours), pillarboxed left/right for
+   clips narrower than 9:16. */
 .overlayVideo {
-  flex: 1 1 60%;
-  min-width: 0;
-  aspect-ratio: 16 / 9;
+  flex: none;
+  height: 100%;
+  aspect-ratio: 9 / 16;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -392,10 +396,10 @@
 .overlaySide {
   display: flex;
   flex-direction: column;
-  flex: 1 1 40%;
+  flex: 1 1 auto;
   min-width: 320px;
   max-width: 420px;
-  max-height: 90vh;
+  height: 100%;
   overflow-y: auto;
   /* Explicit, not just inherited from .overlayCard — this panel sits over
      the blurred backdrop and needs its own opaque paint so the description
@@ -429,23 +433,6 @@
   to {
     opacity: 1;
     transform: scale(1);
-  }
-}
-
-@media (max-width: 1099px) {
-  .overlayCard {
-    flex-direction: column;
-    width: 640px;
-    max-height: 92vh;
-  }
-
-  .overlayVideo {
-    flex: none;
-    aspect-ratio: 16 / 9;
-  }
-
-  .overlaySide {
-    max-width: none;
   }
 }
 

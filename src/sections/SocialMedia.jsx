@@ -27,12 +27,12 @@ const DESCRIPTION_TRUNCATE_LENGTH = 220;
 // Cards per row on desktop (matches .grid's 5-column layout) — also how many
 // more videos each "mehr" click reveals, one full row at a time.
 const GRID_COLUMNS = 5;
-// The watch-modal's video panel is always this fixed shape — a "normal"
-// landscape Facebook video frame — regardless of the actual clip's aspect
-// ratio, so the window never grows/shrinks per video. Anything that doesn't
-// natively fill it gets letterboxed (short/wide clips: bars top and bottom)
-// or pillarboxed (tall/narrow clips: bars left and right) against it.
-const WATCH_BOX_ASPECT = 16 / 9;
+// The watch-modal's video panel is always this fixed shape — the standard
+// 9:16 Reels frame — regardless of the actual clip's aspect ratio, so the
+// window never grows/shrinks per video. Anything that doesn't natively fill
+// it gets letterboxed (wide clips, e.g. ours: bars top and bottom) or
+// pillarboxed (narrower-than-9:16 clips: bars left and right) against it.
+const WATCH_BOX_ASPECT = 9 / 16;
 
 function formatRelativeTime(isoString) {
   if (!isoString) return "";
@@ -166,7 +166,7 @@ function VideoCard({ video, revealed, onOpen }) {
 }
 
 // Renders the video via Facebook's XFBML plugin (not a raw iframe) inside a
-// fixed 16:9 box that never changes size or shape between videos. The plugin
+// fixed 9:16 box that never changes size or shape between videos. The plugin
 // only ever takes a `width` and derives its own height from the video's real
 // aspect ratio — it has no notion of "fit inside this height too" — so this
 // picks whichever axis is the tighter constraint itself (matching CSS
