@@ -22,33 +22,32 @@
   --fb-radius-card: 12px;
   --fb-radius-thumb: 8px;
 
-  /* Solid "our blue" base with a darker-blue radial glow breathing out from
-     the center — swapped in for a white-base/lighter-glow reference design,
-     so the glow needed to move a shade past the base blue instead of past
-     white to still read as a distinct highlight rather than disappearing
-     into it. */
-  background-color: var(--fb-blue);
-  background-image: radial-gradient(circle at center, #4791eb 0%, transparent 70%);
+  /* White at rest — like every other section — so the scroll-triggered
+     "bubble" flood (SectionReveal, driven by this section's own entry in
+     sectionRevealStore.js) is what actually paints it blue as it scrolls
+     into view, instead of the color just being there already with nothing
+     left for that circle to visibly do. */
+  background: var(--fb-surface);
   font-family: var(--fb-font);
 }
 
 /* .eyebrow (global.css) and h2 (site-wide h1/h2/h3 rule) are shared across
    every section — overridden only inside this one via a scoped descendant
    selector, same technique as Sortiment.module.css's :global(#sortiment).
-   White rather than --fb-blue/--fb-text: the animated SilkShader background
-   sitting behind the heading is itself white-on-blue, so the original dark
-   text and (identically) blue eyebrow would both lose their contrast against
-   it — same reason .headingClone below has always painted this white too. */
+   Back to --fb-blue/--fb-text (not white): the section is white at rest
+   again, with the scroll-triggered flood painting it blue — .headingClone
+   below is what turns this text white, but only pixel-by-pixel as that
+   flood actually reaches it, not as a permanent base color. */
 .section :global(.eyebrow) {
   font-family: var(--fb-font);
-  color: #ffffff;
+  color: var(--fb-blue);
   letter-spacing: normal;
   text-transform: none;
 }
 
 .section h2 {
   font-family: var(--fb-font);
-  color: #ffffff;
+  color: var(--fb-text);
   font-weight: 700;
 }
 
@@ -191,19 +190,19 @@
   font-size: 0.85rem;
   line-height: 1.4;
   color: var(--fb-text);
-  /* Reserves the same 5 lines' worth of height every card gets whether its
-     own description is 5 lines, 1 line, or empty — so every card ends up
-     the same overall size, matching the tallest (fully clamped) one instead
-     of shrink-wrapping to its own shorter text. box-sizing is border-box
-     site-wide, so the padding has to be added on top of the 5 line-boxes
+  /* Reserves the same 1 line's worth of height every card gets whether its
+     own description is 1 line or empty — so every card ends up the same
+     overall size, matching the tallest (fully clamped) one instead of
+     shrink-wrapping to its own shorter text. box-sizing is border-box
+     site-wide, so the padding has to be added on top of the line box
      (0.85rem font-size × 1.4 line-height), not left for min-height to eat
-     into — a plain "5.95rem" here measured ~20px short in practice. */
-  min-height: calc(0.85rem * 1.4 * 5 + var(--space-2) + var(--space-3));
+     into. */
+  min-height: calc(0.85rem * 1.4 * 1 + var(--space-2) + var(--space-3));
 }
 
 .descriptionClamped {
   display: -webkit-box;
-  -webkit-line-clamp: 5;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

@@ -12,9 +12,9 @@ import styles from "../sections/SocialMedia.module.css";
 // "watch" modal, just laid out differently around them.
 
 // Descriptions longer than this collapse behind a "mehr" toggle — roughly
-// the character count that fills the card's 5-line clamp at its typical
+// the character count that fills the card's 1-line clamp at its typical
 // width, so the toggle only appears when the clamp would actually kick in.
-const DESCRIPTION_TRUNCATE_LENGTH = 220;
+const DESCRIPTION_TRUNCATE_LENGTH = 40;
 const ENTRANCE_DURATION = 0.6;
 // Mirrors --ease-reveal's curve — hardcoded because Framer Motion transition
 // configs are plain JS values, not CSS custom properties.
@@ -148,13 +148,25 @@ export function VideoCard({ video, revealed, onOpen }) {
       <VideoActions liked={liked} onToggleLike={() => setLiked((value) => !value)} likeCount={video.likeCount ?? 0} video={video} />
 
       {/* Always rendered — even with a short or missing description — so
-         every card reserves the same space a full 5-line-clamped one would
+         every card reserves the same space a full 1-line-clamped one would
          need (see .description's min-height). Otherwise cards in the mobile
          coverflow, which has no grid/flex row to stretch them to a shared
          height, would each end up whatever size their own content happens
-         to need. */}
+         to need.
+
+         Text is truncated to a character budget rather than left to
+         -webkit-line-clamp alone: at 5 lines there was always room left on
+         the last line for the trailing "mehr" button, but clamped to just
+         1 line, an overflowing full-length description would cut off
+         *anything* past the line's own width — including the button right
+         after it in the markup — instead of leaving "…mehr" both visible
+         together like the reference design. descriptionClamped stays on as
+         a width-independent backstop in case a particular card is narrower
+         than this character estimate assumes. */}
       <p className={`${styles.description} ${descExpanded ? "" : styles.descriptionClamped}`}>
-        {description}
+        {isLongDescription && !descExpanded
+          ? `${description.slice(0, DESCRIPTION_TRUNCATE_LENGTH).trimEnd()}…`
+          : description}
         {isLongDescription && (
           <button
             type="button"

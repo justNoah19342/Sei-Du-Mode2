@@ -8,7 +8,11 @@ export const SECTION_COLORS = [
   { id: "marken", color: "#ffffff" },
   { id: "ueber-uns", color: "#FAF7F2" },
   { id: "sortiment", color: "#fcf0d4" },
-  { id: "social-media", color: "#1877F2" },
+  // A gradient rather than a flat color — SectionReveal's circle just applies
+  // whatever's given here as `background`, so this carries the section's own
+  // darker-blue center glow along into the flood itself instead of painting
+  // flat blue and needing the glow layered on separately afterwards.
+  { id: "social-media", color: "radial-gradient(circle at center, #4791eb 0%, #1877F2 70%)" },
   { id: "kontakt", color: "#ffe3a1" },
   // mobileNoReveal: on mobile only, SectionColorBubble stops tracking once
   // the bubble is fully inside this section — it hides instead of following
