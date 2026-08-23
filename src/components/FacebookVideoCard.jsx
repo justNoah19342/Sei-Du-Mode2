@@ -11,9 +11,11 @@ import styles from "../sections/SocialMedia.module.css";
 // carousel (VideoCoverflow.jsx) — both need the exact same card design and
 // "watch" modal, just laid out differently around them.
 
-// Descriptions longer than this collapse behind a "mehr" toggle — roughly
-// the character count that fills the card's 1-line clamp at its typical
-// width, so the toggle only appears when the clamp would actually kick in.
+// Descriptions longer than this get a "mehr" button — a rough character
+// estimate for whether the 1-line description is likely to overflow and
+// need the ellipsis at all (the ellipsis itself is exact, handled by CSS
+// text-overflow, not this — this constant only decides whether to bother
+// showing the button in the first place).
 const DESCRIPTION_TRUNCATE_LENGTH = 40;
 const ENTRANCE_DURATION = 0.6;
 // Mirrors --ease-reveal's curve — hardcoded because Framer Motion transition
@@ -93,7 +95,6 @@ export function VideoCard({ video, revealed, onOpen }) {
   // instantly instead of replaying the slide — layout stays "live" for the
   // component's whole lifetime otherwise.
   const [hasSettled, setHasSettled] = useState(false);
-  const [descExpanded, setDescExpanded] = useState(false);
   const [liked, setLiked] = useState(false);
   const isStacked = !revealed;
   const description = video.description || "";
@@ -148,35 +149,29 @@ export function VideoCard({ video, revealed, onOpen }) {
       <VideoActions liked={liked} onToggleLike={() => setLiked((value) => !value)} likeCount={video.likeCount ?? 0} video={video} />
 
       {/* Always rendered — even with a short or missing description — so
-         every card reserves the same space a full 1-line-clamped one would
-         need (see .description's min-height). Otherwise cards in the mobile
+         every card reserves the same space a full 1-line one would need
+         (see .descriptionRow's min-height). Otherwise cards in the mobile
          coverflow, which has no grid/flex row to stretch them to a shared
          height, would each end up whatever size their own content happens
          to need.
 
-         Text is truncated to a character budget rather than left to
-         -webkit-line-clamp alone: at 5 lines there was always room left on
-         the last line for the trailing "mehr" button, but clamped to just
-         1 line, an overflowing full-length description would cut off
-         *anything* past the line's own width — including the button right
-         after it in the markup — instead of leaving "…mehr" both visible
-         together like the reference design. descriptionClamped stays on as
-         a width-independent backstop in case a particular card is narrower
-         than this character estimate assumes. */}
-      <p className={`${styles.description} ${descExpanded ? "" : styles.descriptionClamped}`}>
-        {isLongDescription && !descExpanded
-          ? `${description.slice(0, DESCRIPTION_TRUNCATE_LENGTH).trimEnd()}…`
-          : description}
+         .description and .moreButton are separate flex children rather than
+         one run of inline content: .description's own text-overflow:
+         ellipsis handles the 1-line truncation exactly (no character-count
+         guessing), and because "mehr" sits outside that clipped box instead
+         of being the tail end of it, it can never itself get wrapped to a
+         second line or clipped away along with the overflow — it's always
+         the one thing guaranteed to stay on line one. Clicking it opens the
+         same watch modal the thumbnail does, same as if "mehr" is just
+         another way to reach the full video + full description. */}
+      <div className={styles.descriptionRow}>
+        <p className={styles.description}>{description}</p>
         {isLongDescription && (
-          <button
-            type="button"
-            className={styles.moreButton}
-            onClick={() => setDescExpanded((value) => !value)}
-          >
-            {descExpanded ? " weniger" : " mehr"}
+          <button type="button" className={styles.moreButton} onClick={() => onOpen(video)}>
+            mehr
           </button>
         )}
-      </p>
+      </div>
     </motion.li>
   );
 }

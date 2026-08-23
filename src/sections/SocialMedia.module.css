@@ -183,36 +183,47 @@
   flex-shrink: 0;
 }
 
-.description {
-  margin: 0;
+/* Row, not just the text — .moreButton lives here as a sibling of
+   .description rather than trailing inside its text flow, so it can never
+   itself get pushed to a second line or clipped away by .description's own
+   overflow. min-height reserves the same 1 line's worth of height every
+   card gets whether its own description is 1 line or empty, so every card
+   ends up the same overall size instead of shrink-wrapping to its own
+   shorter text — matters most for the mobile coverflow, which has no grid/
+   flex row of its own to stretch cards to a shared height. box-sizing is
+   border-box site-wide, so the padding is added on top of the line box
+   (0.85rem font-size × 1.4 line-height), not left for min-height to eat
+   into. */
+.descriptionRow {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
   padding: var(--space-2) var(--space-3) var(--space-3);
+  min-height: calc(0.85rem * 1.4 * 1 + var(--space-2) + var(--space-3));
+}
+
+.description {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
   font-family: var(--fb-font);
   font-size: 0.85rem;
   line-height: 1.4;
   color: var(--fb-text);
-  /* Reserves the same 1 line's worth of height every card gets whether its
-     own description is 1 line or empty — so every card ends up the same
-     overall size, matching the tallest (fully clamped) one instead of
-     shrink-wrapping to its own shorter text. box-sizing is border-box
-     site-wide, so the padding has to be added on top of the line box
-     (0.85rem font-size × 1.4 line-height), not left for min-height to eat
-     into. */
-  min-height: calc(0.85rem * 1.4 * 1 + var(--space-2) + var(--space-3));
-}
-
-.descriptionClamped {
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
+  /* The actual 1-line truncation — exact, based on this card's real
+     rendered width, unlike a character-count guess. */
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .moreButton {
-  margin-left: 2px;
+  flex: none;
   padding: 0;
   border: none;
   background: none;
   font: inherit;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--fb-text-muted);
   cursor: pointer;
