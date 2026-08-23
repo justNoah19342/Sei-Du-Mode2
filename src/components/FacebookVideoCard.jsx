@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { FacebookLogo, Heart, Play, ShareNetwork } from "@phosphor-icons/react";
 import logo from "../assets/logo.jpeg";
 import { useZoomCompensation } from "../hooks/useZoomCompensation";
-import { loadFacebookSdk } from "../lib/facebookSdk";
 import styles from "../sections/SocialMedia.module.css";
 
 // Shared between the desktop grid (SocialMedia.jsx) and the mobile swipe
@@ -177,57 +176,64 @@ export function VideoCard({ video, revealed, onOpen }) {
 }
 
 // Renders the video via Facebook's XFBML plugin (not a raw iframe) inside a
-// fixed 9:16 box that never changes size or shape between videos. The plugin
-// only ever takes a `width` and derives its own height from the video's real
-// aspect ratio — it has no notion of "fit inside this height too" — so this
-// picks whichever axis is the tighter constraint itself (matching CSS
-// `object-fit: contain`) and passes THAT as data-width: a short/wide clip is
-// constrained by the box's width (leaving black bars above/below), a
-// tall/narrow one by the box's height (leaving black bars left/right). The
-// fb-video div is built imperatively rather than left as JSX so it survives
-// untouched across re-renders — React must never diff/replace it once
-// Facebook's own script has taken it over. FB.XFBML.parse has to be called
-// again after every mount/video change since these divs aren't part of the
-// initial page HTML the SDK auto-discovers.
+// fixed 9:16 box that never changes size or shape between videos. A plain
+// iframe onto Facebook's plugins/video.php — not the XFBML `<div
+// class="fb-video">` + FB.XFBML.parse() approach this used previously —
+// deliberately: XFBML embeds share state through the JS SDK's own internal
+// registry, and re-parsing the *same* video's href into a fresh div (which
+// is exactly what happens every time this modal is reopened, e.g. once on
+// desktop and again after resizing to mobile in the same page session)
+// turned out to be unreliable in practice — Facebook's player would
+// sometimes render unrelated suggested content instead of the requested
+// video, or an outright "Video Unavailable". A plain iframe is a fully
+// independent browsing context per embed with no such shared registry, so
+// the same video can be opened any number of times without one embed's
+// state leaking into another's.
+//
+// video.php takes `width`/`height` as literal query params — the same ones
+// Facebook's own "Get Code" tool emits for a fixed-size embed — so sizing
+// still works exactly like before: measures the box's actual rendered width
+// AND height (not derived from a hardcoded ratio) so this keeps working
+// whatever shape SocialMedia.module.css gives .overlayVideo at the current
+// viewport, then picks whichever axis is the tighter constraint (matching
+// CSS `object-fit: contain`) so a short/wide clip is constrained by the
+// box's width (leaving black bars above/below) and a tall/narrow one by the
+// box's height (bars left/right).
 function FacebookVideoEmbed({ video }) {
   const containerRef = useRef(null);
+  const [size, setSize] = useState(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const container = containerRef.current;
-    if (!video.permalinkUrl || !container) return undefined;
-    let cancelled = false;
+    if (!video.permalinkUrl || !container) return;
 
-    // Measures the box's actual rendered width AND height (rather than
-    // deriving one from the other via a hardcoded ratio) so this keeps
-    // working correctly regardless of exactly what shape SocialMedia.module
-    // .css gives .overlayVideo at the current viewport — a true 9:16 frame
-    // on desktop, or a shorter, width-capped one on mobile.
     const rect = container.getBoundingClientRect();
     const boxAspect = rect.width / rect.height;
     const nativeAspect = video.width && video.height ? video.width / video.height : boxAspect;
-    const dataWidth = Math.round(
-      nativeAspect >= boxAspect ? rect.width : rect.height * nativeAspect
-    );
-
-    const embed = document.createElement("div");
-    embed.className = "fb-video";
-    embed.dataset.href = video.permalinkUrl;
-    embed.dataset.width = String(dataWidth);
-    embed.dataset.showText = "false";
-    embed.dataset.autoplay = "true";
-    container.replaceChildren(embed);
-
-    loadFacebookSdk().then((FB) => {
-      if (cancelled || !containerRef.current) return;
-      FB.XFBML.parse(containerRef.current);
-    });
-
-    return () => {
-      cancelled = true;
-    };
+    const width = Math.round(nativeAspect >= boxAspect ? rect.width : rect.height * nativeAspect);
+    const height = Math.round(width / nativeAspect);
+    setSize({ width, height });
   }, [video.permalinkUrl, video.width, video.height]);
 
-  return <div ref={containerRef} className={styles.overlayVideo} />;
+  return (
+    <div ref={containerRef} className={styles.overlayVideo}>
+      {video.permalinkUrl && size && (
+        <iframe
+          key={video.id}
+          className={styles.overlayVideoFrame}
+          src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
+            video.permalinkUrl
+          )}&show_text=false&autoplay=true&width=${size.width}&height=${size.height}`}
+          width={size.width}
+          height={size.height}
+          title="Facebook-Video"
+          allow="autoplay; encrypted-media; picture-in-picture; web-share"
+          allowFullScreen
+          frameBorder="0"
+        />
+      )}
+    </div>
+  );
 }
 
 // "Watch" view shared by desktop and mobile: the video plays large at the

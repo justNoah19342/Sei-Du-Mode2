@@ -441,6 +441,18 @@
   background: #000;
 }
 
+/* Sized via its own width/height attributes (see FacebookVideoEmbed), not
+   100% — a video narrower or shorter than .overlayVideo's own box should
+   sit centered within it (by the flex centering above) with that box's
+   black background showing as the letterbox/pillarbox bars, rather than
+   being stretched to fill the whole box. */
+.overlayVideoFrame {
+  display: block;
+  border: 0;
+  max-width: 100%;
+  max-height: 100%;
+}
+
 .overlaySide {
   display: flex;
   flex-direction: column;
