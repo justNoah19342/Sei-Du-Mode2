@@ -83,7 +83,7 @@ export default function MobileWerteStack({ items }) {
               whileDrag={{ scale: 1.03 }}
               className={`${styles.card} ${layout === "stack" ? styles.stackCard : ""} ${
                 isTop ? styles.grabbable : ""
-              }`}
+              } ${index % 2 === 1 ? styles.accent : ""}`}
             >
               <h3>{item.title}</h3>
               <p>{item.text}</p>

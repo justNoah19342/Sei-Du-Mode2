@@ -62,6 +62,13 @@
   padding: var(--space-6) var(--space-5);
 }
 
+/* Matches UeberUns.module.css's .werteCard.offset — same 2nd/4th cards
+   ("Persönliche Beratung", "Einzigartiges Sortiment") get this accent
+   background on desktop too, kept consistent here. */
+.card.accent {
+  background: #ffd37a;
+}
+
 .card h3 {
   font-size: var(--fs-h3);
   margin-bottom: var(--space-3);

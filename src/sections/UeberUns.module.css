@@ -38,6 +38,7 @@
 }
 
 .werteCard.offset {
+  background: #ffd37a;
   transform: translateY(var(--space-5));
 }
 
