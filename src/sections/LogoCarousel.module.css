@@ -48,10 +48,10 @@
   height: 96px;
   background: var(--color-surface);
   border-radius: var(--radius-lg);
-  /* Test: no resting box-shadow — a permanent shadow on every one of the
-     ~45 recycled cards costs the compositor extra paint/tile work on every
-     one of them, all the time, for a visual effect only the hovered card
-     needs. Shadow now only exists while actually hovered/focused. */
+  /* A light resting shadow so a card stays legible against a same-colored
+     background even before it's hovered — worth the extra paint/tile cost
+     on the ~45 recycled cards. */
+  box-shadow: var(--shadow-sm);
   padding: var(--space-4);
   transition: box-shadow 380ms var(--ease-reveal), transform 380ms var(--ease-reveal);
 }

@@ -256,7 +256,7 @@ function FacebookVideoEmbed({ video }) {
           className={styles.overlayVideoFrame}
           src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
             video.permalinkUrl
-          )}&show_text=false&autoplay=true&width=${size.width}&height=${size.height}`}
+          )}&show_text=false&autoplay=true&mute=0&width=${size.width}&height=${size.height}`}
           width={size.width}
           height={size.height}
           title="Facebook-Video"
