@@ -3,26 +3,31 @@
 // SectionReveal instance (which just needs its own index + color by id).
 // Order matters only for readability here — matching is by full containment,
 // not by DOM order priority.
+// Every entry is a radial gradient (own color at center fading to white at
+// the edge) rather than a flat color — SectionReveal's circle just applies
+// whatever's given here as `background`, so this carries each section's own
+// center glow along into the flood itself instead of painting flat color and
+// needing the glow layered on separately afterwards. The same string is what
+// the corner bubble ends up rendering too (see bubbleBackground() in
+// SectionColorBubble.jsx), so both stay visually consistent with each other.
+// start/marken are still just flat white — a "white center fading to white
+// edge" gradient would be indistinguishable from a flat fill anyway.
 export const SECTION_COLORS = [
   { id: "start", color: "#ffffff" },
   { id: "marken", color: "#ffffff" },
-  { id: "ueber-uns", color: "#FAF7F2" },
-  { id: "sortiment", color: "#fcf0d4" },
-  // A gradient rather than a flat color — SectionReveal's circle just applies
-  // whatever's given here as `background`, so this carries the section's own
-  // terracotta center glow fading out to white at the edges along into the
-  // flood itself instead of painting flat color and needing the glow layered
-  // on separately afterwards. Terracotta instead of Facebook's own blue so
-  // the section still reads as "attention-grabbing" without competing with
-  // the brand's warm amber/charcoal palette everywhere else on the page.
+  { id: "ueber-uns", color: "radial-gradient(circle at center, #FAF7F2 0%, #ffffff 100%)" },
+  { id: "sortiment", color: "radial-gradient(circle at center, #fcf0d4 0%, #ffffff 100%)" },
+  // Terracotta instead of Facebook's own blue so the section still reads as
+  // "attention-grabbing" without competing with the brand's warm
+  // amber/charcoal palette everywhere else on the page.
   { id: "social-media", color: "radial-gradient(circle at center, #e89e84 0%, #ffffff 100%)" },
-  { id: "kontakt", color: "#ffe3a1" },
+  { id: "kontakt", color: "radial-gradient(circle at center, #ffe3a1 0%, #ffffff 100%)" },
   // No SectionReveal is mounted for the footer (see Footer.jsx) — the flood
   // circle only ever grows over a section that actually renders one, so the
   // footer itself is never colorized. This color is only ever picked up by
   // the small corner bubble, which still switches to it (the footer's real
   // background) once it's scrolled fully inside.
-  { id: "footer", color: "#2b2b2b" },
+  { id: "footer", color: "radial-gradient(circle at center, #2b2b2b 0%, #ffffff 100%)" },
 ];
 
 export function getSectionInfo(id) {
