@@ -496,13 +496,18 @@
   }
 }
 
-/* Narrow phones: the desktop layout sizes the video panel off the card's
-   height (a true 9:16 frame, sidebar filling the rest of the width) — on a
-   ~375-430px-wide screen that leaves no room for the sidebar at all. Stacks
-   video-on-top-of-description instead, with the video now sized off the
-   card's (capped) WIDTH — FacebookVideoEmbed measures whatever shape this
-   produces directly rather than assuming a literal 9:16 box, so it still
-   letterboxes/pillarboxes correctly even though this is shorter than 9:16. */
+/* Narrow phones: sidebar has no room next to a full-height video like
+   desktop gets, so this stacks video-on-top-of-description instead. The
+   video panel itself is still a true 9:16 frame sized off height (same
+   method as desktop, just capped lower — 70vh instead of 90vh — so there's
+   still comfortable room left for the description below without needing to
+   scroll for every card), not off width: a width-driven box forced short
+   isn't actually 9:16 at all, which is what let a mismatched video get
+   zoomed/cropped into it instead of shown in full. The card's own width is
+   still capped independently, so the second min() term here keeps the
+   video's derived width (height × 9/16) from ever exceeding that — same
+   safety-cap idea as the desktop height formula below, just solved for the
+   opposite axis. */
 @media (max-width: 640px) {
   .overlayCard {
     flex-direction: column;
@@ -512,11 +517,11 @@
   }
 
   .overlayVideo {
-    width: 100%;
-    height: auto;
-    max-height: 52vh;
-    aspect-ratio: 9 / 16;
+    align-self: center;
     flex: none;
+    width: auto;
+    height: min(70vh, calc(min(94vw, 400px) * 16 / 9));
+    aspect-ratio: 9 / 16;
   }
 
   .overlaySide {

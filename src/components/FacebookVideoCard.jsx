@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { FacebookLogo, Heart, Play, ShareNetwork } from "@phosphor-icons/react";
@@ -192,28 +192,61 @@ export function VideoCard({ video, revealed, onOpen }) {
 //
 // video.php takes `width`/`height` as literal query params — the same ones
 // Facebook's own "Get Code" tool emits for a fixed-size embed — so sizing
-// still works exactly like before: measures the box's actual rendered width
-// AND height (not derived from a hardcoded ratio) so this keeps working
-// whatever shape SocialMedia.module.css gives .overlayVideo at the current
-// viewport, then picks whichever axis is the tighter constraint (matching
-// CSS `object-fit: contain`) so a short/wide clip is constrained by the
-// box's width (leaving black bars above/below) and a tall/narrow one by the
-// box's height (bars left/right).
+// works by measuring the box's actual rendered width AND height (not
+// derived from a hardcoded ratio, so this keeps working whatever shape
+// SocialMedia.module.css gives .overlayVideo at the current viewport), then
+// picking whichever axis is the tighter constraint (matching CSS
+// `object-fit: contain`) so a short/wide clip is constrained by the box's
+// width (leaving black bars above/below) and a tall/narrow one by the box's
+// height (bars left/right).
+//
+// The video's own aspect ratio for that math comes from video.width/height
+// when the Graph API actually returned them — but it doesn't always
+// (particularly for Reels), and guessing the box's own aspect as a stand-in
+// then sends Facebook a width/height pair that doesn't match the real clip
+// at all, which it responds to by zooming/cropping to fill rather than
+// showing the full frame. The video's thumbnail is a far more reliable
+// stand-in: it's a frame lifted directly from the video, so its own pixel
+// dimensions are (in practice, always) the video's real aspect ratio too —
+// falls back to the box's own aspect only if there's no thumbnail either.
 function FacebookVideoEmbed({ video }) {
   const containerRef = useRef(null);
   const [size, setSize] = useState(null);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const container = containerRef.current;
-    if (!video.permalinkUrl || !container) return;
+    if (!video.permalinkUrl || !container) return undefined;
+    let cancelled = false;
 
-    const rect = container.getBoundingClientRect();
-    const boxAspect = rect.width / rect.height;
-    const nativeAspect = video.width && video.height ? video.width / video.height : boxAspect;
-    const width = Math.round(nativeAspect >= boxAspect ? rect.width : rect.height * nativeAspect);
-    const height = Math.round(width / nativeAspect);
-    setSize({ width, height });
-  }, [video.permalinkUrl, video.width, video.height]);
+    const computeSize = (nativeAspect) => {
+      if (cancelled || !containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const boxAspect = rect.width / rect.height;
+      const aspect = nativeAspect || boxAspect;
+      const width = Math.round(aspect >= boxAspect ? rect.width : rect.height * aspect);
+      const height = Math.round(width / aspect);
+      setSize({ width, height });
+    };
+
+    const apiAspect = video.width && video.height ? video.width / video.height : null;
+
+    if (apiAspect) {
+      computeSize(apiAspect);
+    } else if (video.thumbnail) {
+      const img = new Image();
+      img.onload = () => {
+        computeSize(img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : null);
+      };
+      img.onerror = () => computeSize(null);
+      img.src = video.thumbnail;
+    } else {
+      computeSize(null);
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [video.permalinkUrl, video.thumbnail, video.width, video.height]);
 
   return (
     <div ref={containerRef} className={styles.overlayVideo}>
