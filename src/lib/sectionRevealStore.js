@@ -19,15 +19,19 @@ export const SECTION_COLORS = [
   { id: "sortiment", color: "radial-gradient(circle at center, #fcf0d4 0%, #ffffff 100%)" },
   // Terracotta instead of Facebook's own blue so the section still reads as
   // "attention-grabbing" without competing with the brand's warm
-  // amber/charcoal palette everywhere else on the page.
-  { id: "social-media", color: "radial-gradient(circle at center, #e89e84 0%, #ffffff 100%)" },
+  // amber/charcoal palette everywhere else on the page. Edge is a lighter
+  // tint of the same terracotta (not white) — keeps the glow feeling like
+  // it belongs to this section's own color rather than fading to a neutral.
+  { id: "social-media", color: "radial-gradient(circle at center, #e89e84 0%, #efbba9 100%)" },
   { id: "kontakt", color: "radial-gradient(circle at center, #ffe3a1 0%, #ffffff 100%)" },
   // No SectionReveal is mounted for the footer (see Footer.jsx) — the flood
   // circle only ever grows over a section that actually renders one, so the
   // footer itself is never colorized. This color is only ever picked up by
   // the small corner bubble, which still switches to it (the footer's real
-  // background) once it's scrolled fully inside.
-  { id: "footer", color: "radial-gradient(circle at center, #2b2b2b 0%, #ffffff 100%)" },
+  // background) once it's scrolled fully inside. Edge is a lighter gray
+  // (not white) for the same reason as Social Media above — a tint of the
+  // section's own dark color instead of a neutral white.
+  { id: "footer", color: "radial-gradient(circle at center, #2b2b2b 0%, #6b6b6b 100%)" },
 ];
 
 export function getSectionInfo(id) {
