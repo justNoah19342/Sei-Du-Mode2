@@ -73,6 +73,13 @@ async function handleFacebookVideos(env) {
       width: video.width || null,
       height: video.height || null,
       likeCount: video.likes?.summary?.total_count ?? 0,
+      // Facebook's classic embed plugin (plugins/video.php, used by the
+      // watch modal) only officially supports classic /videos/ permalinks —
+      // Reels' /reel/ permalinks aren't a documented supported href, and in
+      // practice embedding one is unreliable (sometimes "Video Unavailable",
+      // sometimes unrelated content). The frontend uses this to skip
+      // attempting an embed for Reels and link out to Facebook instead.
+      isReel: (video.permalink_url || "").includes("/reel/"),
     }));
 
   return jsonResponse({ videos }, 200, {
