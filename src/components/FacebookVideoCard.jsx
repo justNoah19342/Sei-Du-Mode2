@@ -175,20 +175,20 @@ export function VideoCard({ video, revealed, onOpen }) {
   );
 }
 
-// Renders the video via Facebook's XFBML plugin (not a raw iframe) inside a
-// fixed 9:16 box that never changes size or shape between videos. A plain
-// iframe onto Facebook's plugins/video.php — not the XFBML `<div
-// class="fb-video">` + FB.XFBML.parse() approach this used previously —
-// deliberately: XFBML embeds share state through the JS SDK's own internal
-// registry, and re-parsing the *same* video's href into a fresh div (which
-// is exactly what happens every time this modal is reopened, e.g. once on
-// desktop and again after resizing to mobile in the same page session)
-// turned out to be unreliable in practice — Facebook's player would
-// sometimes render unrelated suggested content instead of the requested
-// video, or an outright "Video Unavailable". A plain iframe is a fully
-// independent browsing context per embed with no such shared registry, so
-// the same video can be opened any number of times without one embed's
-// state leaking into another's.
+// Renders the video inside a fixed 9:16 box that never changes size or
+// shape between videos, via a plain iframe onto Facebook's
+// plugins/video.php — not the XFBML `<div class="fb-video">` +
+// FB.XFBML.parse() approach this used previously, deliberately: XFBML
+// embeds share state through the JS SDK's own internal registry, and
+// re-parsing the *same* video's href into a fresh div (which is exactly
+// what happens every time this modal is reopened, e.g. once on desktop and
+// again after resizing to mobile in the same page session) turned out to be
+// unreliable in practice — Facebook's player would sometimes render
+// unrelated suggested content instead of the requested video, or an
+// outright "Video Unavailable". A plain iframe is a fully independent
+// browsing context per embed with no such shared registry, so the same
+// video can be opened any number of times without one embed's state
+// leaking into another's.
 //
 // video.php takes `width`/`height` as literal query params — the same ones
 // Facebook's own "Get Code" tool emits for a fixed-size embed — so sizing
@@ -205,7 +205,7 @@ function FacebookVideoEmbed({ video }) {
 
   useLayoutEffect(() => {
     const container = containerRef.current;
-    if (!video.permalinkUrl || !container || video.isReel) return;
+    if (!video.permalinkUrl || !container) return;
 
     const rect = container.getBoundingClientRect();
     const boxAspect = rect.width / rect.height;
@@ -213,32 +213,7 @@ function FacebookVideoEmbed({ video }) {
     const width = Math.round(nativeAspect >= boxAspect ? rect.width : rect.height * nativeAspect);
     const height = Math.round(width / nativeAspect);
     setSize({ width, height });
-  }, [video.permalinkUrl, video.width, video.height, video.isReel]);
-
-  // Reels (/reel/ permalinks) aren't a documented supported href for
-  // plugins/video.php — Meta's own embed docs only cover classic /videos/
-  // links, and in practice embedding a Reel is unreliable (sometimes
-  // "Video Unavailable", sometimes unrelated content, differing by exactly
-  // what pixel size happens to get requested). Rather than gamble on an
-  // embed that has no official support, Reels get their thumbnail plus a
-  // direct link out to Facebook instead.
-  if (video.isReel) {
-    return (
-      <div
-        className={styles.overlayVideo}
-        style={video.thumbnail ? { backgroundImage: `url(${video.thumbnail})` } : undefined}
-      >
-        <a
-          href={video.permalinkUrl || undefined}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.overlayReelLink}
-        >
-          Auf Facebook ansehen
-        </a>
-      </div>
-    );
-  }
+  }, [video.permalinkUrl, video.width, video.height]);
 
   return (
     <div ref={containerRef} className={styles.overlayVideo}>
