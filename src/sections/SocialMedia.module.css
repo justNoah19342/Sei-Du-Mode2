@@ -406,6 +406,7 @@
 
 .overlayCard {
   display: flex;
+  position: relative;
   /* Fixed height (not width) — a 9:16 video panel is tall, not wide, so the
      card's overall size is now driven by how tall it's allowed to get, with
      both the video's and the sidebar's widths following from that. Normally
@@ -421,6 +422,29 @@
   overflow: hidden;
   font-family: var(--fb-font);
   animation: fbOverlayCardIn 220ms var(--ease-reveal);
+}
+
+.overlayCloseButton {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--fb-text);
+  cursor: pointer;
+  transition: background 150ms var(--ease-reveal);
+}
+
+.overlayCloseButton:hover,
+.overlayCloseButton:focus-visible {
+  background: #ffffff;
 }
 
 /* Always this exact 9:16 "Reels" shape regardless of the actual clip's
@@ -498,16 +522,16 @@
 
 /* Narrow phones: sidebar has no room next to a full-height video like
    desktop gets, so this stacks video-on-top-of-description instead. The
-   video panel itself is still a true 9:16 frame sized off height (same
-   method as desktop, just capped lower — 70vh instead of 90vh — so there's
-   still comfortable room left for the description below without needing to
-   scroll for every card), not off width: a width-driven box forced short
-   isn't actually 9:16 at all, which is what let a mismatched video get
-   zoomed/cropped into it instead of shown in full. The card's own width is
-   still capped independently, so the second min() term here keeps the
-   video's derived width (height × 9/16) from ever exceeding that — same
-   safety-cap idea as the desktop height formula below, just solved for the
-   opposite axis. */
+   video panel fills the card's own width edge to edge — width:100% first,
+   height following from that via aspect-ratio — rather than being sized
+   independently and centered, which left visible gaps of the (white) card
+   background on either side whenever the derived width came out narrower
+   than the card. max-height:70vh softly caps how tall it gets on a short
+   viewport (leaving room for the description below); on the rare
+   screen where that cap actually binds the box ends up a little short of
+   true 9:16, but FacebookVideoEmbed measures its real rendered shape
+   directly rather than assuming 9:16, so the video itself still never gets
+   cropped either way. */
 @media (max-width: 640px) {
   .overlayCard {
     flex-direction: column;
@@ -517,11 +541,10 @@
   }
 
   .overlayVideo {
-    align-self: center;
     flex: none;
-    width: auto;
-    height: min(70vh, calc(min(94vw, 400px) * 16 / 9));
+    width: 100%;
     aspect-ratio: 9 / 16;
+    max-height: 70vh;
   }
 
   .overlaySide {

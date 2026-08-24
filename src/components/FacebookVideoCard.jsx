@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
-import { FacebookLogo, Heart, Play, ShareNetwork } from "@phosphor-icons/react";
+import { FacebookLogo, Heart, Play, ShareNetwork, X } from "@phosphor-icons/react";
 import logo from "../assets/logo.jpeg";
 import { useZoomCompensation } from "../hooks/useZoomCompensation";
 import styles from "../sections/SocialMedia.module.css";
@@ -301,6 +301,9 @@ export function VideoModal({ video, onClose }) {
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.zoomLock} style={{ transform: `scale(${zoomScale})` }}>
         <div className={styles.overlayCard} onClick={(e) => e.stopPropagation()}>
+          <button type="button" className={styles.overlayCloseButton} aria-label="Schließen" onClick={onClose}>
+            <X size={18} weight="bold" />
+          </button>
           <FacebookVideoEmbed video={video} />
           <div className={styles.overlaySide}>
             <div className={styles.cardHeader}>
