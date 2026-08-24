@@ -15,7 +15,7 @@ export const SECTION_COLORS = [
   // on separately afterwards. Terracotta instead of Facebook's own blue so
   // the section still reads as "attention-grabbing" without competing with
   // the brand's warm amber/charcoal palette everywhere else on the page.
-  { id: "social-media", color: "radial-gradient(circle at center, #e8734a 0%, #ffffff 100%)" },
+  { id: "social-media", color: "radial-gradient(circle at center, #e89e84 0%, #ffffff 100%)" },
   { id: "kontakt", color: "#ffe3a1" },
   // No SectionReveal is mounted for the footer (see Footer.jsx) — the flood
   // circle only ever grows over a section that actually renders one, so the
