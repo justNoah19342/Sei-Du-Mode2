@@ -1,6 +1,7 @@
 .wrapper {
+  /* top is set inline (see SectionColorBubble.jsx) — it tracks page scroll
+     progress rather than staying at a fixed offset. */
   position: fixed;
-  top: calc(var(--announcement-height, 0px) + var(--mobile-header-height, 0px) + var(--space-5));
   right: var(--space-5);
   z-index: 15;
   pointer-events: none;
@@ -27,7 +28,6 @@
 
 @media (max-width: 599px) {
   .wrapper {
-    top: calc(var(--announcement-height, 0px) + var(--mobile-header-height, 0px) + var(--space-3));
     right: var(--space-3);
   }
 }

@@ -98,6 +98,20 @@ export default function CategoryCoverflow({ categoryKey, offset, onOffsetChange 
     touchStartX.current = null;
   };
 
+  // Reserve the same box a loaded card would occupy while a category's
+  // products are (re)fetching — .row/.viewport's own min-height carries the
+  // real space, so returning null here (like the genuinely-empty case below)
+  // would otherwise collapse this whole block down to nothing for a moment
+  // on every category switch, yanking everything below (the Social Media
+  // section) up and then back down once the fetch resolves.
+  if (status === "loading") {
+    return (
+      <div className={styles.row}>
+        <div className={styles.viewport} aria-hidden="true" />
+      </div>
+    );
+  }
+
   if (status !== "loaded" || n === 0) return null;
 
   const slots = buildSlots(n, offset);

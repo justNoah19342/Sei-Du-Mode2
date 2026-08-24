@@ -90,7 +90,6 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-  flex: 1;
 }
 
 .callCta {
@@ -99,6 +98,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  align-self: flex-start;
+  margin-top: var(--space-6);
   min-height: 44px;
   padding-inline: var(--space-5);
   border-radius: var(--radius-xl);

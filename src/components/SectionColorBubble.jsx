@@ -9,6 +9,13 @@ import {
 } from "../lib/sectionRevealStore";
 import styles from "./SectionColorBubble.module.css";
 
+const BUBBLE_SIZE_DESKTOP = 140;
+const BUBBLE_SIZE_MOBILE = 90;
+
+function readCssPx(name) {
+  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || 0;
+}
+
 export default function SectionColorBubble() {
   const wrapperRef = useRef(null);
   const [color, setColor] = useState(SECTION_COLORS[0].color);
@@ -43,6 +50,24 @@ export default function SectionColorBubble() {
     const update = () => {
       const bubbleEl = wrapperRef.current;
       if (!bubbleEl) return;
+
+      // Vertical position tracks overall page scroll progress: at the top of
+      // the page it sits at its usual top offset, at the bottom of the page
+      // it sits the mirrored distance up from the viewport's bottom edge,
+      // moving linearly with scrollY in between (so "middle of the page"
+      // puts it roughly mid-viewport). Set before reading bubbleRect below
+      // so the section-containment check further down uses the bubble's
+      // actual on-screen position for this frame, not last frame's.
+      const margin = readCssPx(isMobile ? "--space-3" : "--space-5");
+      const headerOffset = readCssPx("--announcement-height") + readCssPx("--mobile-header-height");
+      const bubbleSize = isMobile ? BUBBLE_SIZE_MOBILE : BUBBLE_SIZE_DESKTOP;
+      const topOffset = headerOffset + margin;
+      const bottomOffset = margin;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = maxScroll > 0 ? Math.min(1, Math.max(0, window.scrollY / maxScroll)) : 0;
+      const travel = Math.max(0, window.innerHeight - bubbleSize - topOffset - bottomOffset);
+      bubbleEl.style.top = `${topOffset + progress * travel}px`;
+
       const bubbleRect = bubbleEl.getBoundingClientRect();
 
       for (let i = 0; i < SECTION_COLORS.length; i += 1) {
