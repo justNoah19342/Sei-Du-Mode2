@@ -10,16 +10,19 @@ export const SECTION_COLORS = [
   { id: "sortiment", color: "#fcf0d4" },
   // A gradient rather than a flat color — SectionReveal's circle just applies
   // whatever's given here as `background`, so this carries the section's own
-  // lighter-blue center glow fading out to white at the edges along into the
-  // flood itself instead of painting flat blue and needing the glow layered
-  // on separately afterwards.
-  { id: "social-media", color: "radial-gradient(circle at center, #8fc4f7 0%, #ffffff 100%)" },
+  // terracotta center glow fading out to white at the edges along into the
+  // flood itself instead of painting flat color and needing the glow layered
+  // on separately afterwards. Terracotta instead of Facebook's own blue so
+  // the section still reads as "attention-grabbing" without competing with
+  // the brand's warm amber/charcoal palette everywhere else on the page.
+  { id: "social-media", color: "radial-gradient(circle at center, #e8734a 0%, #ffffff 100%)" },
   { id: "kontakt", color: "#ffe3a1" },
-  // mobileNoReveal: on mobile only, SectionColorBubble stops tracking once
-  // the bubble is fully inside this section — it hides instead of following
-  // the footer, and reappears only once you're back inside Kontakt. Desktop
-  // is unaffected (footer floods with its color there, same as ever).
-  { id: "footer", color: "#ffe3a1", mobileNoReveal: true },
+  // No SectionReveal is mounted for the footer (see Footer.jsx) — the flood
+  // circle only ever grows over a section that actually renders one, so the
+  // footer itself is never colorized. This color is only ever picked up by
+  // the small corner bubble, which still switches to it (the footer's real
+  // background) once it's scrolled fully inside.
+  { id: "footer", color: "#2b2b2b" },
 ];
 
 export function getSectionInfo(id) {

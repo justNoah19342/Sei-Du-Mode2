@@ -16,6 +16,24 @@ function readCssPx(name) {
   return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || 0;
 }
 
+// Turns a flat section color into the soft glossy-sphere look (lighter
+// highlight fading to the base color) — a section whose own color is
+// already a gradient (currently just Social Media's) is left as-is rather
+// than trying to lighten a gradient string.
+function lighten(hex, amount) {
+  const num = parseInt(hex.replace("#", ""), 16);
+  const mix = (channel) => Math.round(channel + (255 - channel) * amount);
+  const r = mix((num >> 16) & 255);
+  const g = mix((num >> 8) & 255);
+  const b = mix(num & 255);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function bubbleBackground(color) {
+  if (color.includes("gradient(")) return color;
+  return `radial-gradient(circle at 35% 30%, ${lighten(color, 0.55)} 0%, ${color} 100%)`;
+}
+
 export default function SectionColorBubble() {
   const wrapperRef = useRef(null);
   const [color, setColor] = useState(SECTION_COLORS[0].color);
@@ -26,13 +44,6 @@ export default function SectionColorBubble() {
   // a new section starts taking over (activeIndex changes) and hides again
   // once that one settles too.
   const [isHidden, setIsHidden] = useState(false);
-  // Separate from isHidden above: true only on mobile, only once the bubble
-  // is fully inside a `mobileNoReveal` section (currently just the footer).
-  // While true, activeIndex is deliberately left pinned at Kontakt's index
-  // (see the loop below) instead of advancing to the footer, so the footer
-  // never gets flooded and the bubble simply disappears instead of
-  // following it — reappearing the moment you scroll back into Kontakt.
-  const [isBeyondNoRevealZone, setIsBeyondNoRevealZone] = useState(false);
 
   const activeIndexRef = useRef(0);
 
@@ -71,7 +82,7 @@ export default function SectionColorBubble() {
       const bubbleRect = bubbleEl.getBoundingClientRect();
 
       for (let i = 0; i < SECTION_COLORS.length; i += 1) {
-        const { id, color: sectionColor, mobileNoReveal } = SECTION_COLORS[i];
+        const { id, color: sectionColor } = SECTION_COLORS[i];
         const el = document.getElementById(id);
         if (!el) continue;
         const rect = el.getBoundingClientRect();
@@ -79,17 +90,6 @@ export default function SectionColorBubble() {
         // i.e. it's no longer overlapping the section before it, per the
         // "don't change until fully in the new section" requirement.
         if (rect.top <= bubbleRect.top && rect.bottom >= bubbleRect.bottom) {
-          if (isMobile && mobileNoReveal) {
-            // Deliberately skip setColor/publishSectionReveal here — leaving
-            // activeIndex pinned at whatever section was active before (e.g.
-            // Kontakt) means that section just stays in its already-settled
-            // revealed state, and this one (the footer) never receives its
-            // own flood. The bubble itself hides via isBeyondNoRevealZone,
-            // independent of the isHidden/settled mechanism above.
-            setIsBeyondNoRevealZone(true);
-            break;
-          }
-          setIsBeyondNoRevealZone(false);
           setColor((current) => (current === sectionColor ? current : sectionColor));
 
           // Drives SectionReveal's circular reveal — kept independent of the
@@ -121,8 +121,8 @@ export default function SectionColorBubble() {
   }, [isMobile]);
 
   return (
-    <div ref={wrapperRef} className={styles.wrapper} data-hidden={isHidden || isBeyondNoRevealZone}>
-      <Bubble color={color} size={isMobile ? 90 : 140} />
+    <div ref={wrapperRef} className={styles.wrapper} data-hidden={isHidden}>
+      <Bubble color={bubbleBackground(color)} size={isMobile ? 90 : 140} />
     </div>
   );
 }

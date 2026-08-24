@@ -1,11 +1,7 @@
 import { FacebookLogo, InstagramLogo } from "@phosphor-icons/react";
 import Logo from "../components/Logo";
-import SectionReveal from "../components/SectionReveal";
 import { address, contact, openingHours, social, googleReviewHref } from "../data/content";
-import { getSectionInfo } from "../lib/sectionRevealStore";
 import styles from "./Footer.module.css";
-
-const { index: SECTION_INDEX, color: SECTION_COLOR } = getSectionInfo("footer");
 
 // TODO: Hausnummer vor Launch mit Christina abgleichen (siehe Kommentar in
 // OeffnungszeitenKontakt.jsx — "Hauptstraße 61" vs. "Hauptstraße 61-63").
@@ -15,7 +11,6 @@ const { index: SECTION_INDEX, color: SECTION_COLOR } = getSectionInfo("footer");
 export default function Footer() {
   return (
     <footer id="footer" className={styles.footer}>
-      <SectionReveal index={SECTION_INDEX} color={SECTION_COLOR} />
       <div className={`container ${styles.grid}`}>
         <div className={styles.brandCol}>
           <Logo size="sm" onDark />
