@@ -4,6 +4,7 @@ import { useMediaQuery } from "../hooks/useMediaQuery";
 import {
   SECTION_COLORS,
   getSectionRevealState,
+  markSectionSettled,
   publishSectionReveal,
   subscribeSectionReveal,
 } from "../lib/sectionRevealStore";
@@ -11,6 +12,14 @@ import styles from "./SectionColorBubble.module.css";
 
 const BUBBLE_SIZE_DESKTOP = 140;
 const BUBBLE_SIZE_MOBILE = 90;
+
+// Footer has no SectionReveal mounted (see sectionRevealStore.js), so nothing
+// ever calls markSectionSettled for it — left alone, the bubble would stay
+// visible for the entire footer instead of briefly showing and then hiding
+// like it does over every other section. Fake that same "settled" moment
+// here after a delay matching SectionReveal's own grow transition (650ms,
+// see SectionReveal.module.css) so the footer behaves consistently.
+const FOOTER_SETTLE_DELAY = 650;
 
 function readCssPx(name) {
   return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || 0;
@@ -46,6 +55,7 @@ export default function SectionColorBubble() {
   const [isHidden, setIsHidden] = useState(false);
 
   const activeIndexRef = useRef(0);
+  const footerSettleTimeoutRef = useRef(null);
 
   useLayoutEffect(() => {
     setIsHidden(() => {
@@ -105,6 +115,17 @@ export default function SectionColorBubble() {
               bubbleY: bubbleRect.top + bubbleRect.height / 2,
             });
             activeIndexRef.current = i;
+
+            if (footerSettleTimeoutRef.current) {
+              clearTimeout(footerSettleTimeoutRef.current);
+              footerSettleTimeoutRef.current = null;
+            }
+            if (id === "footer") {
+              footerSettleTimeoutRef.current = setTimeout(() => {
+                markSectionSettled(i);
+                footerSettleTimeoutRef.current = null;
+              }, FOOTER_SETTLE_DELAY);
+            }
           }
           break;
         }
@@ -117,6 +138,7 @@ export default function SectionColorBubble() {
     return () => {
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
+      if (footerSettleTimeoutRef.current) clearTimeout(footerSettleTimeoutRef.current);
     };
   }, [isMobile]);
 

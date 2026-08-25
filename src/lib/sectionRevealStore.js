@@ -19,10 +19,8 @@ export const SECTION_COLORS = [
   { id: "sortiment", color: "radial-gradient(circle at center, #fcf0d4 0%, #ffffff 100%)" },
   // Terracotta instead of Facebook's own blue so the section still reads as
   // "attention-grabbing" without competing with the brand's warm
-  // amber/charcoal palette everywhere else on the page. Edge is a lighter
-  // tint of the same terracotta (not white) — keeps the glow feeling like
-  // it belongs to this section's own color rather than fading to a neutral.
-  { id: "social-media", color: "radial-gradient(circle at center, #e89e84 0%, #efbba9 100%)" },
+  // amber/charcoal palette everywhere else on the page.
+  { id: "social-media", color: "radial-gradient(circle at center, #e89e84 0%, #ffffff 100%)" },
   { id: "kontakt", color: "radial-gradient(circle at center, #ffe3a1 0%, #ffffff 100%)" },
   // No SectionReveal is mounted for the footer (see Footer.jsx) — the flood
   // circle only ever grows over a section that actually renders one, so the
