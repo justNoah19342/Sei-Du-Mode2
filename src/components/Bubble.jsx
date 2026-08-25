@@ -1,3 +1,5 @@
+import GradientBackground from './GradientBackground';
+
 export default function Bubble({ color = '#EF9F27', size = 260, style = {} }) {
   return (
     <>
@@ -23,13 +25,19 @@ export default function Bubble({ color = '#EF9F27', size = 260, style = {} }) {
       `}</style>
       <div
         style={{
+          position: 'relative',
+          overflow: 'hidden',
           width: size,
           height: size,
           background: color,
           animation: 'bubble-float 7s ease-in-out infinite',
           ...style,
         }}
-      />
+      >
+        <GradientBackground
+          style={{ position: 'absolute', inset: 0, mixBlendMode: 'soft-light', opacity: 0.7 }}
+        />
+      </div>
     </>
   );
 }
