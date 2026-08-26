@@ -62,7 +62,7 @@ export default function OeffnungszeitenKontakt() {
         </div>
       </div>
 
-      <div className={styles.mapBleed}>
+      <div id="kontakt-map" className={styles.mapBleed}>
         <Suspense fallback={null}>
           <MapView />
         </Suspense>

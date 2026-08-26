@@ -94,10 +94,9 @@
   }
 }
 
-/* Left corner (not right) — CallFAB already owns the bottom-right corner. */
 .reopenButton {
   position: fixed;
-  left: var(--space-4);
+  right: var(--space-4);
   bottom: var(--space-4);
   z-index: 200;
   display: flex;
@@ -111,7 +110,8 @@
   color: var(--color-white);
   box-shadow: var(--shadow-md);
   cursor: pointer;
-  transition: transform 180ms var(--ease-reveal);
+  transition: transform 180ms var(--ease-reveal), background 180ms var(--ease-reveal),
+    color 180ms var(--ease-reveal);
 }
 
 .reopenButton:hover,
@@ -119,9 +119,24 @@
   transform: scale(1.06);
 }
 
+/* Its own default look (dark circle, white icon) disappears against the
+   map/footer's own dark background — inverted while overlapping either
+   (see useOverDarkZone in CookieBanner.jsx) so it stays legible there too. */
+.reopenButton[data-on-dark="true"] {
+  background: var(--color-white);
+  color: var(--color-secondary-dark);
+}
+
+/* CallFAB (CallFAB.module.css) also sits bottom-right at this breakpoint —
+   stacked above it here instead of overlapping. */
+@media (max-width: 899px) {
+  .reopenButton {
+    bottom: calc(var(--space-5) + 56px + var(--space-3));
+  }
+}
+
 @media (max-width: 599px) {
   .reopenButton {
-    left: var(--space-3);
-    bottom: var(--space-3);
+    right: var(--space-3);
   }
 }
