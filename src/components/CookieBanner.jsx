@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Cookie } from "@phosphor-icons/react";
 import { useCookieConsent } from "../hooks/useCookieConsent";
 import styles from "./CookieBanner.module.css";
@@ -42,6 +43,7 @@ export default function CookieBanner() {
       <p className={styles.text}>
         Wir binden Facebook-Videos ein. Beim Laden eines Videos werden Daten an Facebook
         übertragen und Cookies gesetzt. Ohne deine Zustimmung bleiben diese Videos deaktiviert.
+        Mehr dazu in unserer <Link to="/datenschutz" className={styles.link}>Datenschutzerklärung</Link>.
       </p>
       <div className={styles.actions}>
         <button type="button" className={styles.decline} onClick={handleDecline}>

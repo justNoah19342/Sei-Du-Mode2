@@ -25,6 +25,16 @@
   color: var(--color-white);
 }
 
+.link {
+  color: var(--color-primary-light);
+  text-decoration: underline;
+}
+
+.link:hover,
+.link:focus-visible {
+  color: var(--color-primary);
+}
+
 .actions {
   display: flex;
   flex: none;
