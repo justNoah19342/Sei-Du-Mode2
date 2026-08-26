@@ -15,6 +15,17 @@
   color: var(--color-white);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
+  transition: background 180ms var(--ease-reveal), color 180ms var(--ease-reveal);
+}
+
+/* Same reasoning as .reopenButton[data-on-dark] below — the banner's own
+   dark look would otherwise blend into the map/footer's dark background
+   while it's shown over either. Descendant text/link/button colors are
+   overridden explicitly since they set their own color rather than
+   inheriting it. */
+.banner[data-on-dark="true"] {
+  background: var(--color-white);
+  color: var(--color-secondary-dark);
 }
 
 .text {
@@ -23,6 +34,11 @@
   font-size: var(--fs-sm);
   line-height: 1.5;
   color: var(--color-white);
+  transition: color 180ms var(--ease-reveal);
+}
+
+.banner[data-on-dark="true"] .text {
+  color: var(--color-secondary-dark);
 }
 
 .link {
@@ -33,6 +49,10 @@
 .link:hover,
 .link:focus-visible {
   color: var(--color-primary);
+}
+
+.banner[data-on-dark="true"] .link {
+  color: var(--color-primary-dark);
 }
 
 .actions {
@@ -57,11 +77,18 @@
   border: 1px solid rgba(255, 255, 255, 0.35);
   background: transparent;
   color: var(--color-white);
+  transition: opacity 180ms var(--ease-reveal), border-color 180ms var(--ease-reveal),
+    color 180ms var(--ease-reveal);
 }
 
 .decline:hover,
 .decline:focus-visible {
   opacity: 0.75;
+}
+
+.banner[data-on-dark="true"] .decline {
+  border-color: rgba(43, 43, 43, 0.35);
+  color: var(--color-secondary-dark);
 }
 
 .accept {

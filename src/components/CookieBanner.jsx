@@ -60,9 +60,11 @@ export default function CookieBanner() {
   const { consent, accept, decline } = useCookieConsent();
   const [reopened, setReopened] = useState(false);
   const reopenButtonRef = useRef(null);
+  const bannerRef = useRef(null);
 
   const showChoice = !consent || reopened;
-  const overDark = useOverDarkZone(reopenButtonRef, !showChoice);
+  const overDarkIcon = useOverDarkZone(reopenButtonRef, !showChoice);
+  const overDarkBanner = useOverDarkZone(bannerRef, showChoice);
 
   if (!showChoice) {
     return (
@@ -70,7 +72,7 @@ export default function CookieBanner() {
         ref={reopenButtonRef}
         type="button"
         className={styles.reopenButton}
-        data-on-dark={overDark}
+        data-on-dark={overDarkIcon}
         onClick={() => setReopened(true)}
         aria-label="Cookie-Einstellungen öffnen"
       >
@@ -90,7 +92,14 @@ export default function CookieBanner() {
   };
 
   return (
-    <div className={styles.banner} role="dialog" aria-live="polite" aria-label="Cookie-Einstellungen">
+    <div
+      ref={bannerRef}
+      className={styles.banner}
+      data-on-dark={overDarkBanner}
+      role="dialog"
+      aria-live="polite"
+      aria-label="Cookie-Einstellungen"
+    >
       <p className={styles.text}>
         Wir binden Facebook-Videos ein. Beim Laden eines Videos werden Daten an Facebook
         übertragen und Cookies gesetzt. Ohne deine Zustimmung bleiben diese Videos deaktiviert.
