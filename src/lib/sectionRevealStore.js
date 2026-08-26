@@ -17,10 +17,17 @@ export const SECTION_COLORS = [
   { id: "marken", color: "#ffffff" },
   { id: "ueber-uns", color: "radial-gradient(circle at center, #FAF7F2 0%, #ffffff 100%)" },
   { id: "sortiment", color: "radial-gradient(circle at center, #fcf0d4 0%, #ffffff 100%)" },
-  // Terracotta instead of Facebook's own blue so the section still reads as
-  // "attention-grabbing" without competing with the brand's warm
-  // amber/charcoal palette everywhere else on the page.
-  { id: "social-media", color: "radial-gradient(circle at center, #e89e84 0%, #ffffff 100%)" },
+  // Soft multi-color pastel blend (21st.dev "Soft Pastel Blend" recipe)
+  // instead of a flat/single-hue radial — same background string is reused
+  // as-is by the corner bubble (see bubbleBackground() in
+  // SectionColorBubble.jsx, which passes any string containing "gradient("
+  // straight through), so both the flood and the miniature bubble end up
+  // showing the identical blend.
+  {
+    id: "social-media",
+    color:
+      "radial-gradient(circle at 65.44% 45.18%, rgba(251, 233, 240, 1) 0%, rgba(251, 233, 240, 0) 45.3%), radial-gradient(circle at 28.2% 73.9%, rgba(205, 231, 240, 1) 0%, rgba(205, 231, 240, 0) 56.85%), radial-gradient(circle at 52.5% 19.29%, rgba(230, 214, 245, 1) 0%, rgba(230, 214, 245, 0) 68.75%), radial-gradient(circle at 79.87% 84.43%, rgba(214, 240, 228, 1) 0%, rgba(214, 240, 228, 0) 80.3%), #D6F0E4",
+  },
   { id: "kontakt", color: "radial-gradient(circle at center, #ffe3a1 0%, #ffffff 100%)" },
   // No SectionReveal is mounted for the footer (see Footer.jsx) — the flood
   // circle only ever grows over a section that actually renders one, so the

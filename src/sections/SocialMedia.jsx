@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import { useInView, useReducedMotion } from "framer-motion";
 import { VideoCard, VideoModal } from "../components/FacebookVideoCard";
-import GradientBackground from "../components/GradientBackground";
 import SectionHeading from "../components/SectionHeading";
 import SectionReveal from "../components/SectionReveal";
 import VideoCoverflow from "../components/VideoCoverflow";
@@ -134,7 +133,6 @@ export default function SocialMedia() {
 
   return (
     <section id="social-media" ref={sectionRef} className={`${styles.section} section`}>
-      <GradientBackground className={styles.gradientBg} />
       <SectionReveal index={SECTION_INDEX} color={SECTION_COLOR} />
       <div className="container">
         <FacebookHeading />
