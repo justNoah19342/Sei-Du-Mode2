@@ -83,3 +83,35 @@
     flex: 1;
   }
 }
+
+/* Left corner (not right) — CallFAB already owns the bottom-right corner. */
+.reopenButton {
+  position: fixed;
+  left: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-secondary-dark);
+  color: var(--color-white);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: transform 180ms var(--ease-reveal);
+}
+
+.reopenButton:hover,
+.reopenButton:focus-visible {
+  transform: scale(1.06);
+}
+
+@media (max-width: 599px) {
+  .reopenButton {
+    left: var(--space-3);
+    bottom: var(--space-3);
+  }
+}
