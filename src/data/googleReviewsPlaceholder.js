@@ -13,7 +13,7 @@ export const googleReviewsPlaceholder = [
     authorPhoto: null,
     rating: 5,
     relativeTime: "vor 2 Wochen",
-    text: "Tolle, individuelle Auswahl abseits der üblichen Marken. Christina berät super ehrlich und ganz ohne Verkaufsdruck — komme immer wieder gerne vorbei.",
+    text: "Tolle, individuelle Auswahl abseits der üblichen Marken. Christina berät super ehrlich und ganz ohne Verkaufsdruck — komme immer wieder gerne vorbei. Man merkt sofort, dass hier mit Liebe ausgesucht wird und nicht einfach nachbestellt, was gerade im Trend ist. Absolute Empfehlung für alle, die mal was anderes suchen.",
   },
   {
     id: "placeholder-2",
@@ -21,7 +21,7 @@ export const googleReviewsPlaceholder = [
     authorPhoto: null,
     rating: 5,
     relativeTime: "vor 1 Monat",
-    text: "Endlich ein Laden, in dem man nicht das Gleiche wie überall sieht. Sehr freundliche Beratung und faire Preise für die Qualität.",
+    text: "Endlich ein Laden, in dem man nicht das Gleiche wie überall sieht. Sehr freundliche Beratung und faire Preise für die Qualität. Ich war auf der Suche nach etwas Besonderem für einen runden Geburtstag und wurde wirklich fündig — inklusive ehrlicher Rückmeldung, was mir steht und was nicht.",
   },
   {
     id: "placeholder-3",
@@ -37,7 +37,7 @@ export const googleReviewsPlaceholder = [
     authorPhoto: null,
     rating: 5,
     relativeTime: "vor 2 Monaten",
-    text: "Sehr persönliche Atmosphäre, man fühlt sich nicht gedrängt etwas zu kaufen. Habe ein tolles Outfit für eine Hochzeit gefunden.",
+    text: "Sehr persönliche Atmosphäre, man fühlt sich nicht gedrängt etwas zu kaufen. Habe ein tolles Outfit für eine Hochzeit gefunden — inklusive passender Tasche und Schuhen dazu, alles aus einer Hand und wirklich stimmig aufeinander abgestimmt. Werde definitiv wiederkommen, wenn der nächste Anlass ansteht.",
   },
   {
     id: "placeholder-5",
