@@ -220,10 +220,22 @@ function FacebookVideoEmbed({ video }) {
 
     const computeSize = (nativeAspect) => {
       if (cancelled || !containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const boxAspect = rect.width / rect.height;
+      // offsetWidth/offsetHeight (not getBoundingClientRect) — the modal's
+      // entrance animation (.overlayCard's fbOverlayCardIn keyframes, see
+      // SocialMedia.module.css) scales the whole card up from 92% right as
+      // this effect fires, and getBoundingClientRect reports whatever
+      // mid-animation size is current at that instant. That baked a
+      // permanently-too-small width/height into the iframe (its HTML
+      // attributes are only ever set once here), leaving a gap on every
+      // side once the animation finished growing the box around it.
+      // offsetWidth/offsetHeight are the element's actual layout size and
+      // ignore CSS transforms entirely, so they're correct regardless of
+      // where the animation happens to be.
+      const boxWidth = containerRef.current.offsetWidth;
+      const boxHeight = containerRef.current.offsetHeight;
+      const boxAspect = boxWidth / boxHeight;
       const aspect = nativeAspect || boxAspect;
-      const width = Math.round(aspect >= boxAspect ? rect.width : rect.height * aspect);
+      const width = Math.round(aspect >= boxAspect ? boxWidth : boxHeight * aspect);
       const height = Math.round(width / aspect);
       setSize({ width, height });
     };
