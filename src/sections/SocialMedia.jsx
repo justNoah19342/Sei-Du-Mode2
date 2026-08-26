@@ -6,7 +6,6 @@ import SectionReveal from "../components/SectionReveal";
 import VideoCoverflow from "../components/VideoCoverflow";
 import { useFacebookVideos } from "../hooks/useFacebookVideos";
 import { useMediaQuery } from "../hooks/useMediaQuery";
-import { useSectionRevealCircle } from "../hooks/useSectionRevealCircle";
 import { getSectionInfo } from "../lib/sectionRevealStore";
 import styles from "./SocialMedia.module.css";
 
@@ -15,35 +14,6 @@ const SKELETON_COUNT = 5;
 // Cards per row on desktop (matches .grid's 5-column layout) — also how many
 // more videos each "mehr" click reveals, one full row at a time.
 const GRID_COLUMNS = 5;
-
-// Same growing circle as the section's own background flood (SectionReveal),
-// reused here via useSectionRevealCircle against this element's own box —
-// a white duplicate of the heading is clip-path-masked to that exact circle
-// and laid on top, so the eyebrow/title turn white only where the flood has
-// already physically reached them, and stay their normal colors everywhere
-// the flood hasn't (per pixel, mid-word if the wipe is mid-transition).
-function FacebookHeading() {
-  const wrapRef = useRef(null);
-  const { revealed, instant, origin } = useSectionRevealCircle(SECTION_INDEX, wrapRef, {
-    collapseOnHide: true,
-  });
-  const clipPath = `circle(${origin.r}px at ${origin.x}px ${origin.y}px)`;
-
-  return (
-    <div className={styles.headingWrap} ref={wrapRef}>
-      <SectionHeading eyebrow="Facebook" title="Unser Social Media" align="center" />
-      <div
-        className={styles.headingClone}
-        aria-hidden="true"
-        data-revealed={revealed}
-        data-instant={instant}
-        style={{ clipPath, WebkitClipPath: clipPath }}
-      >
-        <SectionHeading eyebrow="Facebook" title="Unser Social Media" align="center" />
-      </div>
-    </div>
-  );
-}
 
 function FacebookVideoRow({ revealed, isStacked }) {
   const { status, videos } = useFacebookVideos();
@@ -135,7 +105,7 @@ export default function SocialMedia() {
     <section id="social-media" ref={sectionRef} className={`${styles.section} section`}>
       <SectionReveal index={SECTION_INDEX} color={SECTION_COLOR} />
       <div className="container">
-        <FacebookHeading />
+        <SectionHeading eyebrow="Facebook" title="Unser Social Media" align="center" />
         <FacebookVideoRow revealed={revealed} isStacked={isStacked} />
       </div>
     </section>

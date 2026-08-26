@@ -33,11 +33,7 @@
 
 /* .eyebrow (global.css) and h2 (site-wide h1/h2/h3 rule) are shared across
    every section — overridden only inside this one via a scoped descendant
-   selector, same technique as Sortiment.module.css's :global(#sortiment).
-   Back to --fb-blue/--fb-text (not white): the section is white at rest
-   again, with the scroll-triggered flood painting it blue — .headingClone
-   below is what turns this text white, but only pixel-by-pixel as that
-   flood actually reaches it, not as a permanent base color. */
+   selector, same technique as Sortiment.module.css's :global(#sortiment). */
 .section :global(.eyebrow) {
   font-family: var(--fb-font);
   color: var(--fb-blue);
@@ -49,62 +45,6 @@
   font-family: var(--fb-font);
   color: var(--fb-text);
   font-weight: 700;
-}
-
-.headingWrap {
-  position: relative;
-}
-
-.headingClone {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  /* Same timing as SectionReveal.module.css's .circle — both are triggered
-     by the same store event in the same React commit, so a matching
-     transition here keeps the white wipe pixel-synced to the background
-     flood instead of drifting out of step with it. */
-  transition: clip-path 650ms cubic-bezier(0.22, 0.9, 0.32, 1);
-}
-
-.headingClone[data-revealed="false"] {
-  transition-duration: 260ms;
-  transition-timing-function: cubic-bezier(0.55, 0, 0.85, 0.35);
-}
-
-.headingClone[data-instant="true"] {
-  transition-duration: 0ms;
-}
-
-/* Belt-and-suspenders for the pristine pre-interaction state (mount, or an
-   instant jump that lands un-revealed): some WebKit builds fail to actually
-   clip a `circle(0px at 0% 0%)` path (the 0/0 coordinates apparently hit a
-   degenerate case where the browser paints the full box instead of nothing),
-   leaving the white clone visibly covering the real heading until the first
-   real clip-path value change forces a proper repaint. opacity is a
-   completely separate paint step from clip-path, so it hides the clone
-   regardless of whether the browser's clip-path implementation cooperates —
-   safe to add only for the instant+hidden combo since nothing is
-   transitioning at that moment (transition-duration is already 0ms there). */
-.headingClone[data-revealed="false"][data-instant="true"] {
-  opacity: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .headingClone {
-    transition-duration: 0ms;
-  }
-}
-
-/* Higher in source order than .section :global(.eyebrow) / .section h2
-   above — same selector specificity, so this wins the cascade tie and
-   recolors only the clipped white clone, leaving the real heading beneath
-   it in its normal fb-blue/fb-text colors. */
-.headingClone :global(.eyebrow) {
-  color: #ffffff;
-}
-
-.headingClone h2 {
-  color: #ffffff;
 }
 
 .gridWrap {

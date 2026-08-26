@@ -22,11 +22,13 @@ export const SECTION_COLORS = [
   // as-is by the corner bubble (see bubbleBackground() in
   // SectionColorBubble.jsx, which passes any string containing "gradient("
   // straight through), so both the flood and the miniature bubble end up
-  // showing the identical blend.
+  // showing the identical blend. Each stop is mixed ~50% toward white
+  // (rgb(255,255,255)) versus the original recipe, for a lighter, airier
+  // version of the same blend.
   {
     id: "social-media",
     color:
-      "radial-gradient(circle at 65.44% 45.18%, rgba(251, 233, 240, 1) 0%, rgba(251, 233, 240, 0) 45.3%), radial-gradient(circle at 28.2% 73.9%, rgba(205, 231, 240, 1) 0%, rgba(205, 231, 240, 0) 56.85%), radial-gradient(circle at 52.5% 19.29%, rgba(230, 214, 245, 1) 0%, rgba(230, 214, 245, 0) 68.75%), radial-gradient(circle at 79.87% 84.43%, rgba(214, 240, 228, 1) 0%, rgba(214, 240, 228, 0) 80.3%), #D6F0E4",
+      "radial-gradient(circle at 65.44% 45.18%, rgba(253, 244, 248, 1) 0%, rgba(253, 244, 248, 0) 45.3%), radial-gradient(circle at 28.2% 73.9%, rgba(230, 243, 248, 1) 0%, rgba(230, 243, 248, 0) 56.85%), radial-gradient(circle at 52.5% 19.29%, rgba(243, 235, 250, 1) 0%, rgba(243, 235, 250, 0) 68.75%), radial-gradient(circle at 79.87% 84.43%, rgba(235, 248, 242, 1) 0%, rgba(235, 248, 242, 0) 80.3%), #EBF8F2",
   },
   { id: "kontakt", color: "radial-gradient(circle at center, #ffe3a1 0%, #ffffff 100%)" },
   // No SectionReveal is mounted for the footer (see Footer.jsx) — the flood
