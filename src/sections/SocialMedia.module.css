@@ -417,6 +417,53 @@
   max-height: 100%;
 }
 
+/* Shown instead of the iframe until cookie consent is given (see
+   CookieBanner.jsx / useCookieConsent) — same box, so accepting swaps
+   straight to the real video without any layout jump. */
+.consentGate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  width: 100%;
+  height: 100%;
+  padding: var(--space-5);
+  text-align: center;
+  background-color: #000;
+  background-size: cover;
+  background-position: center;
+}
+
+.consentGateText {
+  margin: 0;
+  max-width: 260px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.consentGateButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 10px 22px;
+  border: none;
+  border-radius: 999px;
+  background: var(--fb-blue);
+  font-family: var(--fb-font);
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  transition: opacity 180ms var(--ease-reveal);
+}
+
+.consentGateButton:hover,
+.consentGateButton:focus-visible {
+  opacity: 0.88;
+}
+
 .overlaySide {
   display: flex;
   flex-direction: column;

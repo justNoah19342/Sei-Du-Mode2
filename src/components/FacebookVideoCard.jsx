@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { FacebookLogo, Heart, Play, ShareNetwork, X } from "@phosphor-icons/react";
 import logo from "../assets/logo.jpeg";
+import { useCookieConsent } from "../hooks/useCookieConsent";
 import { useZoomCompensation } from "../hooks/useZoomCompensation";
 import styles from "../sections/SocialMedia.module.css";
 
@@ -212,10 +213,17 @@ export function VideoCard({ video, revealed, onOpen }) {
 function FacebookVideoEmbed({ video }) {
   const containerRef = useRef(null);
   const [size, setSize] = useState(null);
+  const { consent, accept } = useCookieConsent();
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!video.permalinkUrl || !container) return undefined;
+    // Measuring/loading the iframe is pointless without consent — skip
+    // straight past it so accepting later (see the button below) doesn't
+    // need this same effect to somehow re-fire; consent flips this whole
+    // component to the accepted branch below instead, which mounts a fresh
+    // FacebookVideoEmbed-shaped render with this effect running for the
+    // first time.
+    if (!video.permalinkUrl || !container || consent !== "accepted") return undefined;
     let cancelled = false;
 
     const computeSize = (nativeAspect) => {
@@ -258,11 +266,11 @@ function FacebookVideoEmbed({ video }) {
     return () => {
       cancelled = true;
     };
-  }, [video.permalinkUrl, video.thumbnail, video.width, video.height]);
+  }, [video.permalinkUrl, video.thumbnail, video.width, video.height, consent]);
 
   return (
     <div ref={containerRef} className={styles.overlayVideo}>
-      {video.permalinkUrl && size && (
+      {consent === "accepted" && video.permalinkUrl && size && (
         <iframe
           key={video.id}
           className={styles.overlayVideoFrame}
@@ -276,6 +284,21 @@ function FacebookVideoEmbed({ video }) {
           allowFullScreen
           frameBorder="0"
         />
+      )}
+
+      {consent !== "accepted" && (
+        <div
+          className={styles.consentGate}
+          style={video.thumbnail ? { backgroundImage: `url(${video.thumbnail})` } : undefined}
+        >
+          <p className={styles.consentGateText}>
+            Zum Abspielen wird eine Verbindung zu Facebook hergestellt und Cookies werden gesetzt.
+          </p>
+          <button type="button" className={styles.consentGateButton} onClick={accept}>
+            <Play size={16} weight="fill" />
+            Video laden
+          </button>
+        </div>
       )}
     </div>
   );

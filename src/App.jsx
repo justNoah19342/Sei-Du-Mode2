@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import AnnouncementBar from "./components/AnnouncementBar";
+import CookieBanner from "./components/CookieBanner";
 import SectionColorBubble from "./components/SectionColorBubble";
 import Sidebar from "./components/Sidebar";
 import MobileHeader from "./components/MobileHeader";
@@ -75,6 +76,7 @@ export default function App() {
         </div>
         <CallFAB />
       </div>
+      <CookieBanner />
     </>
   );
 }
