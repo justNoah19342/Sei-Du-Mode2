@@ -1,13 +1,19 @@
+import { lazy, Suspense } from "react";
 import { MapPin, Phone, EnvelopeSimple, Clock, Image } from "@phosphor-icons/react";
 import SectionHeading from "../components/SectionHeading";
 import ContactForm from "../components/ContactForm";
-import MapView from "../components/MapView";
 import SectionReveal from "../components/SectionReveal";
 import { address, contact, openingHours } from "../data/content";
 import { getSectionInfo } from "../lib/sectionRevealStore";
 import styles from "./OeffnungszeitenKontakt.module.css";
 
 const { index: SECTION_INDEX, color: SECTION_COLOR } = getSectionInfo("kontakt");
+
+// maplibre-gl is by far the single largest dependency in the app (bigger
+// than every other library combined) — lazy so it's a separate chunk the
+// browser only fetches once this section actually mounts, instead of
+// blocking the initial page load for a map near the very bottom of the page.
+const MapView = lazy(() => import("../components/MapView"));
 
 // TODO: Hausnummer vor Launch mit Christina abgleichen — manche Verzeichnisse
 // listen "Hauptstraße 61-63" statt "Hauptstraße 61".
@@ -57,7 +63,9 @@ export default function OeffnungszeitenKontakt() {
       </div>
 
       <div className={styles.mapBleed}>
-        <MapView />
+        <Suspense fallback={null}>
+          <MapView />
+        </Suspense>
       </div>
     </section>
   );
