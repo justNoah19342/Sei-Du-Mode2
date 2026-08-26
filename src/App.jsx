@@ -51,11 +51,16 @@ function Home() {
 
 export default function App() {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
+  // Bubble tracks section colors that only exist on the homepage (see
+  // sectionRevealStore.js) — on Impressum/Datenschutz there's nothing for it
+  // to track, so it would just sit there frozen at whatever color/position
+  // it last had instead of disappearing like it should.
+  const isHome = useLocation().pathname === "/";
 
   return (
     <>
       <AnnouncementBar />
-      <SectionColorBubble />
+      {isHome && <SectionColorBubble />}
       <div className={styles.layout}>
         <Sidebar />
         <div className={styles.main}>
