@@ -53,7 +53,6 @@ export default function Footer() {
           <a href={googleReviewHref} className={styles.link}>
             Google-Bewertungen ansehen
           </a>
-          {/* TODO: echten Google-Review-Link einfuegen (aktuell href="#") */}
           <a href="/impressum" className={styles.link}>
             Impressum
           </a>

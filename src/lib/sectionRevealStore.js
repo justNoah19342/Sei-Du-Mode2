@@ -17,6 +17,7 @@ export const SECTION_COLORS = [
   { id: "marken", color: "#ffffff" },
   { id: "ueber-uns", color: "radial-gradient(circle at center, #FAF7F2 0%, #ffffff 100%)" },
   { id: "sortiment", color: "radial-gradient(circle at center, #fcf0d4 0%, #ffffff 100%)" },
+  { id: "google-bewertungen", color: "radial-gradient(circle at center, #fdeeca 0%, #ffffff 100%)" },
   // Soft multi-color pastel blend (21st.dev "Soft Pastel Blend" recipe)
   // instead of a flat/single-hue radial — same background string is reused
   // as-is by the corner bubble (see bubbleBackground() in

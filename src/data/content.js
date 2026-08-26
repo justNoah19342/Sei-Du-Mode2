@@ -34,7 +34,9 @@ export const social = {
   instagram: "https://www.instagram.com/seidumode/",
 };
 
-export const googleReviewHref = "https://www.google.com/maps/search/SEI+DU+Mode+Neunkirchen-Seelscheid";
+// Precise Place ID link (not a name-based search) — points at exactly this
+// listing regardless of similarly-named businesses nearby.
+export const googleReviewHref = "https://www.google.com/maps/place/?q=place_id:ChIJE5MFMwvDvkcRkF5K4vLeLmM";
 
 export const selbstbeschreibung =
   'Mode Boutique mit individueller Mode plus Schuhe, Taschen und Accessoires – nicht die üblichen Marken.';

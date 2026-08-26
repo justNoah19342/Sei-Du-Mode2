@@ -11,6 +11,7 @@ import Hero from "./sections/Hero";
 import LogoCarousel from "./sections/LogoCarousel";
 import UeberUns from "./sections/UeberUns";
 import Sortiment from "./sections/Sortiment";
+import GoogleReviews from "./sections/GoogleReviews";
 import SocialMedia from "./sections/SocialMedia";
 import OeffnungszeitenKontakt from "./sections/OeffnungszeitenKontakt";
 import Footer from "./sections/Footer";
@@ -43,6 +44,7 @@ function Home() {
       <UeberUns />
       <LogoCarousel />
       <Sortiment />
+      <GoogleReviews />
       <SocialMedia />
       <OeffnungszeitenKontakt />
       <Footer />
