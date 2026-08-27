@@ -9,14 +9,6 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* Rendered inside GoogleReviewOverlay's portal — same card, just roomier
-   padding since it's no longer squeezed into a 5-column grid cell. */
-.cardExpanded {
-  padding: var(--space-5);
-  box-shadow: none;
-  border: none;
-}
-
 .header {
   display: flex;
   align-items: center;
@@ -72,44 +64,11 @@
   color: var(--color-border);
 }
 
+/* font-size is set inline per-card (see GoogleReviewCard.jsx's
+   fontSizeForLength) — longer review text renders smaller instead of being
+   clamped/truncated, so every review always shows in full. */
 .text {
   margin: 0;
-  font-size: 0.85rem;
   line-height: 1.5;
   color: var(--color-text);
-  /* 4-line clamp — real Google review text length varies a lot, this keeps
-     every card roughly the same height in the grid regardless. */
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* Used instead of .text inside the overlay (expanded card) — full text, no
-   clamp. */
-.textFull {
-  margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: var(--color-text);
-  white-space: pre-wrap;
-}
-
-.moreButton {
-  align-self: flex-start;
-  margin: -4px 0 0;
-  padding: 0;
-  border: none;
-  background: none;
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  cursor: pointer;
-}
-
-.moreButton:hover,
-.moreButton:focus-visible {
-  color: var(--color-text);
-  text-decoration: underline;
 }

@@ -2,11 +2,10 @@ import { useRef, useState } from "react";
 import { useInView, useReducedMotion } from "framer-motion";
 import { ArrowSquareOut } from "@phosphor-icons/react";
 import GoogleReviewCard from "../components/GoogleReviewCard";
-import GoogleReviewOverlay from "../components/GoogleReviewOverlay";
 import SectionHeading from "../components/SectionHeading";
 import SectionReveal from "../components/SectionReveal";
 import { googleReviewHref } from "../data/content";
-import { useGoogleReviews } from "../hooks/useGoogleReviews";
+import { reviews } from "../data/reviews";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { getSectionInfo } from "../lib/sectionRevealStore";
 import styles from "./GoogleReviews.module.css";
@@ -22,8 +21,6 @@ const { index: SECTION_INDEX, color: SECTION_COLOR } = getSectionInfo("google-be
 const MOBILE_INITIAL_COUNT = 2;
 
 export default function GoogleReviews() {
-  const { reviews } = useGoogleReviews();
-  const [activeReview, setActiveReview] = useState(null);
   const [showAllMobile, setShowAllMobile] = useState(false);
   const sectionRef = useRef(null);
   const prefersReducedMotion = useReducedMotion();
@@ -54,7 +51,7 @@ export default function GoogleReviews() {
 
         <ul className={styles.grid}>
           {visibleReviews.map((review) => (
-            <GoogleReviewCard key={review.id} review={review} revealed={revealed} onOpen={setActiveReview} />
+            <GoogleReviewCard key={review.id} review={review} revealed={revealed} />
           ))}
         </ul>
 
@@ -69,8 +66,6 @@ export default function GoogleReviews() {
           <ArrowSquareOut size={16} weight="bold" />
         </a>
       </div>
-
-      {activeReview && <GoogleReviewOverlay review={activeReview} onClose={() => setActiveReview(null)} />}
     </section>
   );
 }

@@ -3,15 +3,28 @@ import { motion } from "framer-motion";
 import { Star } from "@phosphor-icons/react";
 import styles from "./GoogleReviewCard.module.css";
 
-// Rough character estimate for whether the 4-line clamped text is likely to
-// actually overflow those 4 lines — same idea as FacebookVideoCard's
-// DESCRIPTION_TRUNCATE_LENGTH, just scaled up roughly 4x since this card
-// clamps to 4 lines instead of 1.
-const TEXT_TRUNCATE_LENGTH = 170;
 const ENTRANCE_DURATION = 0.6;
 // Mirrors --ease-reveal's curve — hardcoded because Framer Motion transition
 // configs are plain JS values, not CSS custom properties.
 const ENTRANCE_EASE = [0.25, 0.46, 0.45, 0.94];
+
+// Every review is shown in full (no clamping/truncation, no "mehr" button
+// into an overlay) — instead the text's own font-size scales down as it gets
+// longer, so a long review still reads as "fits its card" rather than
+// blowing the card's height out. Tiers, not a continuous formula: reviews
+// are static hand-written copy (see data/reviews.js), so a few fixed steps
+// are easier to reason about and tune by eye than a formula chasing every
+// possible length.
+const FONT_SIZE_TIERS = [
+  { maxLength: 220, fontSize: "0.85rem" },
+  { maxLength: 320, fontSize: "0.8rem" },
+  { maxLength: 420, fontSize: "0.75rem" },
+  { maxLength: Infinity, fontSize: "0.7rem" },
+];
+
+function fontSizeForLength(length) {
+  return FONT_SIZE_TIERS.find((tier) => length <= tier.maxLength).fontSize;
+}
 
 // Deterministic per-name color so the same reviewer always gets the same
 // placeholder-avatar color across reloads, instead of a random one flashing
@@ -24,10 +37,7 @@ function colorForName(name) {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-function Avatar({ name, photo }) {
-  if (photo) {
-    return <img className={styles.avatar} src={photo} alt="" aria-hidden="true" loading="lazy" />;
-  }
+function Avatar({ name }) {
   const initial = name.trim().charAt(0).toUpperCase() || "?";
   return (
     <div className={styles.avatar} style={{ background: colorForName(name) }} aria-hidden="true">
@@ -46,40 +56,32 @@ function StarRow({ rating }) {
   );
 }
 
-// revealed/onOpen are only meaningful for the compact grid card — the
-// enlarged overlay copy (see GoogleReviewOverlay.jsx) passes `expanded`
-// instead, which always shows full text and skips the stack/fan-out
-// entrance entirely (it's already the thing that just opened).
-export default function GoogleReviewCard({ review, revealed = true, onOpen, expanded = false }) {
+export default function GoogleReviewCard({ review, revealed = true }) {
   // Same "did the one-time scroll entrance already finish" guard as
   // VideoCard — a later layout change (e.g. resizing across a grid
   // breakpoint) should snap instantly instead of replaying the fan-out.
   const [hasSettled, setHasSettled] = useState(false);
-  const isStacked = !expanded && !revealed;
-  const isLongText = !expanded && review.text.length > TEXT_TRUNCATE_LENGTH;
+  const isStacked = !revealed;
 
   return (
     <motion.li
-      layout={!expanded}
-      className={`${styles.card} ${expanded ? styles.cardExpanded : ""}`}
+      layout
+      className={styles.card}
       style={isStacked ? { gridColumn: 1, gridRow: 1, pointerEvents: "none" } : undefined}
-      transition={!expanded && !hasSettled ? { duration: ENTRANCE_DURATION, ease: ENTRANCE_EASE } : { duration: 0 }}
+      transition={hasSettled ? { duration: 0 } : { duration: ENTRANCE_DURATION, ease: ENTRANCE_EASE }}
       onLayoutAnimationComplete={() => setHasSettled(true)}
     >
       <div className={styles.header}>
-        <Avatar name={review.authorName} photo={review.authorPhoto} />
+        <Avatar name={review.authorName} />
         <div className={styles.headerText}>
           <span className={styles.name}>{review.authorName}</span>
           <span className={styles.time}>{review.relativeTime}</span>
         </div>
       </div>
       <StarRow rating={review.rating} />
-      <p className={expanded ? styles.textFull : styles.text}>{review.text}</p>
-      {isLongText && (
-        <button type="button" className={styles.moreButton} onClick={() => onOpen(review)}>
-          mehr
-        </button>
-      )}
+      <p className={styles.text} style={{ fontSize: fontSizeForLength(review.text.length) }}>
+        {review.text}
+      </p>
     </motion.li>
   );
 }
