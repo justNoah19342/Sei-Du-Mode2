@@ -12,10 +12,27 @@
   margin-bottom: var(--space-7);
 }
 
+/* Pulls the logo (and the address link stacked right under it) up so its
+   gap to the footer's top edge roughly matches its gap to the left edge
+   (--space-5, from .container's own padding-inline) instead of the taller
+   --space-8 the footer's own top padding would otherwise leave here. */
+.brandCol {
+  margin-top: calc(-1 * (var(--space-8) - var(--space-5)));
+}
+
 .brandCol .address {
+  display: block;
   margin-top: var(--space-4);
   opacity: 0.75;
   font-size: var(--fs-sm);
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.brandCol .address:hover,
+.brandCol .address:focus-visible {
+  opacity: 1;
 }
 
 .heading {

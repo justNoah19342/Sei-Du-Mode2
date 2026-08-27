@@ -44,7 +44,7 @@ export default function OeffnungszeitenKontakt() {
             </li>
             <li>
               <MapPin size={22} weight="light" />
-              <a href={googleMapsDirectionsHref} target="_blank" rel="noopener noreferrer">
+              <a href={googleMapsDirectionsHref} target="_blank" rel="noopener noreferrer" className={styles.mapLink}>
                 {address.full}
               </a>
             </li>

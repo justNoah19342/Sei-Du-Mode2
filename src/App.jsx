@@ -17,7 +17,6 @@ import OeffnungszeitenKontakt from "./sections/OeffnungszeitenKontakt";
 import Footer from "./sections/Footer";
 import Impressum from "./pages/Impressum";
 import Datenschutz from "./pages/Datenschutz";
-import DesignPreview from "./pages/DesignPreview";
 import styles from "./App.module.css";
 
 function Home() {
@@ -73,7 +72,6 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/impressum" element={<Impressum />} />
             <Route path="/datenschutz" element={<Datenschutz />} />
-            <Route path="/design-preview" element={<DesignPreview />} />
           </Routes>
         </div>
         <CallFAB />
