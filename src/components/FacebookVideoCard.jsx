@@ -86,7 +86,7 @@ function VideoActions({ liked, onToggleLike, likeCount, video }) {
         aria-label="Auf WhatsApp teilen"
         onClick={() => shareVideo(video)}
       >
-        <WhatsappLogo size={20} weight="fill" />
+        <WhatsappLogo size={20} weight="regular" />
       </button>
     </div>
   );
