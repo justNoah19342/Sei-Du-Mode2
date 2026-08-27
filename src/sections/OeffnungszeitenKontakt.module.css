@@ -67,18 +67,6 @@
   margin-bottom: 2px;
 }
 
-.mapLink {
-  color: var(--color-primary);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: color 180ms var(--ease-reveal);
-}
-
-.mapLink:hover,
-.mapLink:focus-visible {
-  color: var(--color-primary-dark);
-}
-
 .mapBleed {
   /* Full width of the content column (.main), not the browser viewport —
      100vw would ignore the sidebar and overflow past the right edge. */
