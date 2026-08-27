@@ -47,7 +47,7 @@ export default function GoogleReviews() {
     <section id="google-bewertungen" ref={sectionRef} className={`${styles.section} section`}>
       <SectionReveal index={SECTION_INDEX} color={SECTION_COLOR} />
       <div className="container">
-        <SectionHeading title="Was unsere Kundinnen sagen" align="center" />
+        <SectionHeading title="Was unsere Kundinnen und Kunden sagen" align="center" />
 
         <ul className={styles.grid}>
           {visibleReviews.map((review) => (

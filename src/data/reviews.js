@@ -1,5 +1,5 @@
-// Fixed set of 5-star reviews shown in the "Was unsere Kundinnen sagen"
-// section — no live Google Places API involved (that integration was
+// Fixed set of 5-star reviews shown in the "Was unsere Kundinnen und Kunden
+// sagen" section — no live Google Places API involved (that integration was
 // removed; see worker/index.js history). To change what's shown, edit this
 // array directly: add, remove, or rewrite an entry, no other file needs to
 // change.
@@ -27,10 +27,10 @@ export const reviews = [
   },
   {
     id: "review-4",
-    authorName: "Nadine S.",
+    authorName: "Thomas M.",
     rating: 5,
     relativeTime: "vor 3 Monaten",
-    text: "Kleiner Laden, große Auswahl an wirklich schönen Accessoires und Schmuckstücken. Christina hat sofort ein Gespür dafür, was zu einem passt, ohne aufdringlich zu sein.",
+    text: "War eher zufällig hier und positiv überrascht — auch für Männer eine schöne kleine Auswahl abseits der üblichen Ketten. Ehrliche Beratung ohne Verkaufsdruck, habe eine Jacke gefunden, die ich sonst nirgends gesehen habe.",
   },
   {
     id: "review-5",
