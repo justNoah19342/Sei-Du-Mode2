@@ -30,7 +30,7 @@ export const reviews = [
     authorName: "Thomas M.",
     rating: 5,
     relativeTime: "vor 3 Monaten",
-    text: "War eher zufällig hier und positiv überrascht — auch für Männer eine schöne kleine Auswahl abseits der üblichen Ketten. Ehrliche Beratung ohne Verkaufsdruck, habe eine Jacke gefunden, die ich sonst nirgends gesehen habe.",
+    text: "War eher zufällig hier und positiv überrascht — auch für Männer eine schöne kleine Auswahl abseits der üblichen Ketten. Ehrliche Beratung ohne Verkaufsdruck, habe eine Tasche gefunden, die ich sonst nirgends gesehen habe.",
   },
   {
     id: "review-5",
