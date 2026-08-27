@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
-import { FacebookLogo, Heart, Play, ShareNetwork, X } from "@phosphor-icons/react";
+import { FacebookLogo, Heart, Play, WhatsappLogo, X } from "@phosphor-icons/react";
 import logo from "../assets/logo.jpeg";
 import { useCookieConsent } from "../hooks/useCookieConsent";
 import { useZoomCompensation } from "../hooks/useZoomCompensation";
@@ -40,15 +40,18 @@ function formatRelativeTime(isoString) {
   return `vor ${diffYears} Jahr${diffYears === 1 ? "" : "en"}`;
 }
 
-// Facebook's own share dialog — no extra API scopes needed, unlike an actual
-// re-post to the Page. Clearing the popup's `opener` (rather than passing
-// "noopener" in the features string, which isn't part of the actual spec)
-// is what stops the popup from reaching back into this window.
+// Opens straight into WhatsApp (the app on mobile if installed, WhatsApp Web
+// on desktop) with the video link pre-filled, ready to pick a chat and send —
+// this replaced Facebook's own sharer.php popup, which on mobile got
+// intercepted by the Facebook app itself and dropped the visitor on its
+// generic feed/post-composer instead of an actual share dialog. wa.me is
+// WhatsApp's own official "click to chat" link format, so no API key or app
+// approval is needed, same reasoning as the Facebook sharer it replaced.
 function shareVideo(video) {
   if (!video.permalinkUrl) return;
-  const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(video.permalinkUrl)}`;
-  const popup = window.open(shareUrl, "facebook-share", "width=580,height=470");
-  if (popup) popup.opener = null;
+  const text = `Schau dir dieses Video von Sei Du Mode an: ${video.permalinkUrl}`;
+  const shareUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+  window.open(shareUrl, "_blank", "noopener,noreferrer");
 }
 
 // "10789" -> "10k" — truncated (not rounded) to whole thousands, matching
@@ -80,10 +83,10 @@ function VideoActions({ liked, onToggleLike, likeCount, video }) {
       <button
         type="button"
         className={`${styles.iconButton} ${styles.shareButton}`}
-        aria-label="Teilen"
+        aria-label="Auf WhatsApp teilen"
         onClick={() => shareVideo(video)}
       >
-        <ShareNetwork size={20} />
+        <WhatsappLogo size={20} weight="fill" />
       </button>
     </div>
   );
