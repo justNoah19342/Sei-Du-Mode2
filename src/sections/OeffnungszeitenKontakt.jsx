@@ -3,7 +3,7 @@ import { MapPin, Phone, EnvelopeSimple, Clock, Image } from "@phosphor-icons/rea
 import SectionHeading from "../components/SectionHeading";
 import ContactForm from "../components/ContactForm";
 import SectionReveal from "../components/SectionReveal";
-import { address, contact, openingHours } from "../data/content";
+import { address, contact, openingHours, googleMapsDirectionsHref } from "../data/content";
 import { getSectionInfo } from "../lib/sectionRevealStore";
 import styles from "./OeffnungszeitenKontakt.module.css";
 
@@ -44,7 +44,9 @@ export default function OeffnungszeitenKontakt() {
             </li>
             <li>
               <MapPin size={22} weight="light" />
-              <span>{address.full}</span>
+              <a href={googleMapsDirectionsHref} target="_blank" rel="noopener noreferrer">
+                {address.full}
+              </a>
             </li>
             <li>
               <Phone size={22} weight="light" />

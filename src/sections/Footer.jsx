@@ -1,6 +1,6 @@
 import { FacebookLogo, InstagramLogo } from "@phosphor-icons/react";
 import Logo from "../components/Logo";
-import { address, contact, openingHours, social, googleReviewHref } from "../data/content";
+import { address, contact, openingHours, social, googleReviewHref, googleMapsDirectionsHref } from "../data/content";
 import styles from "./Footer.module.css";
 
 // TODO: Hausnummer vor Launch mit Christina abgleichen (siehe Kommentar in
@@ -14,7 +14,9 @@ export default function Footer() {
       <div className={`container ${styles.grid}`}>
         <div className={styles.brandCol}>
           <Logo size="sm" onDark />
-          <p className={styles.address}>{address.full}</p>
+          <a href={googleMapsDirectionsHref} target="_blank" rel="noopener noreferrer" className={styles.address}>
+            {address.full}
+          </a>
         </div>
 
         <div>

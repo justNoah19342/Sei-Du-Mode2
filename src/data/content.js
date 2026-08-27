@@ -38,6 +38,15 @@ export const social = {
 // listing regardless of similarly-named businesses nearby.
 export const googleReviewHref = "https://www.google.com/maps/place/?q=place_id:ChIJE5MFMwvDvkcRkF5K4vLeLmM";
 
+// Opens Google Maps with turn-by-turn directions straight to this address —
+// destination_place_id pins it to the exact listing above (same Place ID as
+// googleReviewHref), destination is just the human-readable fallback Google
+// shows/uses if the place id ever stops resolving.
+export const googleMapsDirectionsHref =
+  "https://www.google.com/maps/dir/?api=1&destination=" +
+  encodeURIComponent(address.full) +
+  "&destination_place_id=ChIJE5MFMwvDvkcRkF5K4vLeLmM";
+
 export const selbstbeschreibung =
   'Mode Boutique mit individueller Mode plus Schuhe, Taschen und Accessoires – nicht die üblichen Marken.';
 
