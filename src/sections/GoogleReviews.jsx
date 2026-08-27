@@ -32,8 +32,16 @@ export default function GoogleReviews() {
   // matches that component's own trigger exactly, so both sections feel
   // identical when scrolled past.
   const isInView = useInView(sectionRef, { once: true, amount: 0.15 });
-  const revealed = isInView || prefersReducedMotion;
   const isStacked = useMediaQuery("(max-width: 899px)");
+  // On mobile this grid is a single column, so the stack-then-fan-out
+  // entrance buys nothing visually (each card already lands in its own
+  // slot) but does leave every card sitting on top of the first one,
+  // pointer-events:none, until the IntersectionObserver-driven isInView
+  // flips true — see FacebookVideoCard.jsx's identical isStacked bypass for
+  // why that flip can be slow or fail to fire at all on some mobile
+  // browsers. Skipping the animation on mobile removes that failure mode
+  // entirely instead of depending on the observer firing reliably.
+  const revealed = isInView || prefersReducedMotion || isStacked;
 
   const canToggle = isStacked && reviews.length > MOBILE_INITIAL_COUNT;
   const visibleReviews = canToggle && !showAllMobile ? reviews.slice(0, MOBILE_INITIAL_COUNT) : reviews;

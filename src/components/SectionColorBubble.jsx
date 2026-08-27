@@ -56,6 +56,12 @@ export default function SectionColorBubble() {
 
   const activeIndexRef = useRef(0);
   const footerSettleTimeoutRef = useRef(null);
+  // margin/headerOffset only ever change when the mobile breakpoint flips or
+  // the page is resized (both already re-run measure() below) — reading them
+  // via getComputedStyle on every single scroll event was pure waste and,
+  // combined with the getBoundingClientRect reads right after, forced a
+  // synchronous layout recalculation on every scroll tick (see rafId below).
+  const metricsRef = useRef({ margin: 0, headerOffset: 0 });
 
   useLayoutEffect(() => {
     setIsHidden(() => {
@@ -68,6 +74,13 @@ export default function SectionColorBubble() {
   }, []);
 
   useLayoutEffect(() => {
+    const measureStaticMetrics = () => {
+      metricsRef.current = {
+        margin: readCssPx(isMobile ? "--space-3" : "--space-5"),
+        headerOffset: readCssPx("--announcement-height") + readCssPx("--mobile-header-height"),
+      };
+    };
+
     const update = () => {
       const bubbleEl = wrapperRef.current;
       if (!bubbleEl) return;
@@ -79,8 +92,7 @@ export default function SectionColorBubble() {
       // puts it roughly mid-viewport). Set before reading bubbleRect below
       // so the section-containment check further down uses the bubble's
       // actual on-screen position for this frame, not last frame's.
-      const margin = readCssPx(isMobile ? "--space-3" : "--space-5");
-      const headerOffset = readCssPx("--announcement-height") + readCssPx("--mobile-header-height");
+      const { margin, headerOffset } = metricsRef.current;
       const bubbleSize = isMobile ? BUBBLE_SIZE_MOBILE : BUBBLE_SIZE_DESKTOP;
       const topOffset = headerOffset + margin;
       const bottomOffset = margin;
@@ -132,12 +144,35 @@ export default function SectionColorBubble() {
       }
     };
 
+    // Scroll fires far more often than the browser can usefully repaint —
+    // running the full measure-and-branch work synchronously inside the
+    // event handler (as this used to) forces a layout recalculation on every
+    // single event, which is what made scrolling feel janky on slower
+    // Android devices. Coalescing to one rAF-scheduled run per frame keeps
+    // the layout reads/writes batched with the browser's own render cycle
+    // instead of fighting it.
+    let rafId = null;
+    const onScrollOrResize = () => {
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        update();
+      });
+    };
+
+    const onResize = () => {
+      measureStaticMetrics();
+      onScrollOrResize();
+    };
+
+    measureStaticMetrics();
     update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    window.addEventListener("resize", onResize);
     return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      window.removeEventListener("scroll", onScrollOrResize);
+      window.removeEventListener("resize", onResize);
       if (footerSettleTimeoutRef.current) clearTimeout(footerSettleTimeoutRef.current);
     };
   }, [isMobile]);
