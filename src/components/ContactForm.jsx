@@ -2,8 +2,13 @@ import { useState } from "react";
 import AppointmentPicker, { formatAppointmentLine } from "./AppointmentPicker";
 import styles from "./ContactForm.module.css";
 
-const endpoint = import.meta.env.VITE_FORMSPREE_ENDPOINT;
-const isConfigured = Boolean(endpoint);
+// Web3Forms takes submissions at one fixed endpoint for every user — which
+// form/inbox it's for is determined by the access_key sent along in the
+// body, not by the URL (unlike Formspree's per-form endpoint URL this
+// replaced).
+const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
+const accessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
+const isConfigured = Boolean(accessKey);
 
 export default function ContactForm() {
   const [status, setStatus] = useState("idle");
@@ -18,15 +23,20 @@ export default function ContactForm() {
       const message = formData.get("message") || "";
       formData.set("message", `${formatAppointmentLine(appointment)}\n\n${message}`);
     }
+    formData.set("access_key", accessKey);
 
     try {
-      const response = await fetch(endpoint, {
+      const response = await fetch(WEB3FORMS_ENDPOINT, {
         method: "POST",
         headers: { Accept: "application/json" },
         body: formData,
       });
-      setStatus(response.ok ? "success" : "error");
-      if (response.ok) e.target.reset();
+      // Web3Forms always answers 200 with its own { success: boolean } body
+      // (e.g. a bad access_key still comes back as HTTP 200) — response.ok
+      // alone would treat that as a success.
+      const result = await response.json().catch(() => null);
+      setStatus(result?.success ? "success" : "error");
+      if (result?.success) e.target.reset();
     } catch {
       setStatus("error");
     }
