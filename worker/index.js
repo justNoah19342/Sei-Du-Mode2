@@ -57,7 +57,14 @@ async function handleFacebookVideos(env) {
   const videosData = videosResponse.ok ? await videosResponse.json() : { data: [] };
   const reelsData = reelsResponse.ok ? await reelsResponse.json() : { data: [] };
 
-  // Reels show up under both edges, so dedupe by id before mapping.
+  // Reels show up under both edges, so dedupe by id before mapping. Track
+  // which ids came from /video_reels specifically — the Graph API's
+  // permalink_url for a Reel often still points at the legacy
+  // facebook.com/{page-id}/videos/{id} form, which Facebook no longer
+  // resolves for Reels (only facebook.com/reel/{id} works), so those ids
+  // need their permalink built manually instead of trusting the field.
+  const reelIds = new Set((reelsData.data || []).map((item) => item.id));
+
   const byId = new Map();
   for (const item of [...(videosData.data || []), ...(reelsData.data || [])]) {
     byId.set(item.id, item);
@@ -69,7 +76,9 @@ async function handleFacebookVideos(env) {
     .map((video) => ({
       id: video.id,
       thumbnail: video.picture || null,
-      permalinkUrl: toAbsoluteUrl(video.permalink_url),
+      permalinkUrl: reelIds.has(video.id)
+        ? `https://www.facebook.com/reel/${video.id}`
+        : toAbsoluteUrl(video.permalink_url),
       description: video.description || "",
       createdTime: video.created_time || null,
       width: video.width || null,
