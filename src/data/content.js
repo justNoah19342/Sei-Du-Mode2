@@ -42,7 +42,7 @@ export const googleReviewHref = "https://www.google.com/maps/place/?q=place_id:C
 // to the previous address even after address.full was updated, so plain
 // lat,lng is used instead of relying on the place id resolving correctly.
 export const googleMapsDirectionsHref =
-  "https://www.google.com/maps/dir/?api=1&destination=50.87112212977902,7.324796684116342";
+  "https://www.google.com/maps/dir/?api=1&destination=50.87110374186769,7.324840424030146";
 
 export const selbstbeschreibung =
   'Mode Boutique mit individueller Mode plus Schuhe, Taschen und Accessoires – nicht die üblichen Marken.';
