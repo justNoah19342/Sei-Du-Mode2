@@ -36,14 +36,13 @@ export const social = {
 // listing regardless of similarly-named businesses nearby.
 export const googleReviewHref = "https://www.google.com/maps/place/?q=place_id:ChIJE5MFMwvDvkcRkF5K4vLeLmM";
 
-// Opens Google Maps with turn-by-turn directions straight to this address —
-// destination_place_id pins it to the exact listing above (same Place ID as
-// googleReviewHref), destination is just the human-readable fallback Google
-// shows/uses if the place id ever stops resolving.
+// Opens Google Maps with turn-by-turn directions straight to the shop's
+// exact coordinates (same ones MapView.jsx's marker sits on) — the old
+// destination_place_id pinned this to the pre-move listing and kept routing
+// to the previous address even after address.full was updated, so plain
+// lat,lng is used instead of relying on the place id resolving correctly.
 export const googleMapsDirectionsHref =
-  "https://www.google.com/maps/dir/?api=1&destination=" +
-  encodeURIComponent(address.full) +
-  "&destination_place_id=ChIJE5MFMwvDvkcRkF5K4vLeLmM";
+  "https://www.google.com/maps/dir/?api=1&destination=50.87112212977902,7.324796684116342";
 
 export const selbstbeschreibung =
   'Mode Boutique mit individueller Mode plus Schuhe, Taschen und Accessoires – nicht die üblichen Marken.';
