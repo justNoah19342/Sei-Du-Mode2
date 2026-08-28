@@ -25,16 +25,13 @@ async function handleFacebookVideos(env) {
     return jsonResponse({ error: "Facebook API not configured" }, 503);
   }
 
-  // Regular videos and Reels are separate content types on the Graph API —
-  // /videos alone misses Reels, so both edges are fetched and merged.
-  const videosUrl = new URL(`https://graph.facebook.com/${GRAPH_API_VERSION}/${pageId}/videos`);
-  videosUrl.searchParams.set(
-    "fields",
-    "id,permalink_url,picture,created_time,description,width,height,likes.summary(true).limit(0)"
-  );
-  videosUrl.searchParams.set("limit", "30");
-  videosUrl.searchParams.set("access_token", accessToken);
-
+  // The page only actually publishes Reels. The /videos edge also lists
+  // these same Reels, but as stale duplicate records with a second, no
+  // longer resolvable permalink (facebook.com/{page-id}/videos/{id}) and an
+  // empty description, instead of the working facebook.com/reel/{id} link
+  // /video_reels gives — so /videos is skipped entirely rather than merged.
+  // If the page ever posts a real classic video again, that edge would need
+  // re-adding here.
   const reelsUrl = new URL(`https://graph.facebook.com/${GRAPH_API_VERSION}/${pageId}/video_reels`);
   reelsUrl.searchParams.set(
     "fields",
@@ -43,42 +40,26 @@ async function handleFacebookVideos(env) {
   reelsUrl.searchParams.set("limit", "30");
   reelsUrl.searchParams.set("access_token", accessToken);
 
-  let videosResponse, reelsResponse;
+  let reelsResponse;
   try {
-    [videosResponse, reelsResponse] = await Promise.all([fetch(videosUrl), fetch(reelsUrl)]);
+    reelsResponse = await fetch(reelsUrl);
   } catch {
     return jsonResponse({ error: "Facebook API unreachable" }, 502);
   }
 
-  if (!videosResponse.ok && !reelsResponse.ok) {
+  if (!reelsResponse.ok) {
     return jsonResponse({ error: "Facebook API request failed" }, 502);
   }
 
-  const videosData = videosResponse.ok ? await videosResponse.json() : { data: [] };
-  const reelsData = reelsResponse.ok ? await reelsResponse.json() : { data: [] };
+  const reelsData = await reelsResponse.json();
 
-  // Reels show up under both edges, so dedupe by id before mapping. Track
-  // which ids came from /video_reels specifically — the Graph API's
-  // permalink_url for a Reel often still points at the legacy
-  // facebook.com/{page-id}/videos/{id} form, which Facebook no longer
-  // resolves for Reels (only facebook.com/reel/{id} works), so those ids
-  // need their permalink built manually instead of trusting the field.
-  const reelIds = new Set((reelsData.data || []).map((item) => item.id));
-
-  const byId = new Map();
-  for (const item of [...(videosData.data || []), ...(reelsData.data || [])]) {
-    byId.set(item.id, item);
-  }
-
-  const videos = [...byId.values()]
+  const videos = (reelsData.data || [])
     .sort((a, b) => new Date(b.created_time) - new Date(a.created_time))
     .slice(0, 30)
     .map((video) => ({
       id: video.id,
       thumbnail: video.picture || null,
-      permalinkUrl: reelIds.has(video.id)
-        ? `https://www.facebook.com/reel/${video.id}`
-        : toAbsoluteUrl(video.permalink_url),
+      permalinkUrl: `https://www.facebook.com/reel/${video.id}`,
       description: video.description || "",
       createdTime: video.created_time || null,
       width: video.width || null,
@@ -91,11 +72,6 @@ async function handleFacebookVideos(env) {
     // every single page load.
     "cache-control": "public, max-age=600",
   });
-}
-
-function toAbsoluteUrl(permalinkUrl) {
-  if (!permalinkUrl) return null;
-  return permalinkUrl.startsWith("http") ? permalinkUrl : `https://www.facebook.com${permalinkUrl}`;
 }
 
 function jsonResponse(body, status, extraHeaders = {}) {
