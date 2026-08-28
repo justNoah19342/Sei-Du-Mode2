@@ -21,8 +21,11 @@ setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
 // Always light by design, regardless of the visitor's device theme.
 const TILE_STYLE = "https://tiles.openfreemap.org/styles/liberty";
 
-// Geocoded via OpenStreetMap Nominatim for "Hauptstraße 61, 53819 Neunkirchen-Seelscheid".
-const SHOP_COORDS = [7.3378908, 50.8440754];
+// Geocoded via OpenStreetMap Nominatim for "Zeithstraße 131, 53819
+// Neunkirchen-Seelscheid" — OSM has no address point for the exact house
+// number yet, so this is the street's own centroid rather than the precise
+// building; close enough for the map's zoom level.
+const SHOP_COORDS = [7.2921293, 50.8442471];
 
 export default function MapView() {
   const containerRef = useRef(null);

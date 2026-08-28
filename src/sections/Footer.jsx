@@ -3,8 +3,6 @@ import Logo from "../components/Logo";
 import { address, contact, openingHours, social, googleReviewHref, googleMapsDirectionsHref } from "../data/content";
 import styles from "./Footer.module.css";
 
-// TODO: Hausnummer vor Launch mit Christina abgleichen (siehe Kommentar in
-// OeffnungszeitenKontakt.jsx — "Hauptstraße 61" vs. "Hauptstraße 61-63").
 // TODO: Impressum- und Datenschutz-Seiten mit rechtlich geprueftem Text ergaenzen
 // (gesetzlich vorgeschrieben fuer gewerbliche Websites in Deutschland).
 

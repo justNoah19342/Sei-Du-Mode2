@@ -16,9 +16,6 @@ const { index: SECTION_INDEX, color: SECTION_COLOR } = getSectionInfo("kontakt")
 // blocking the initial page load for a map near the very bottom of the page.
 const MapView = lazy(() => import("../components/MapView"));
 
-// TODO: Hausnummer vor Launch mit Christina abgleichen — manche Verzeichnisse
-// listen "Hauptstraße 61-63" statt "Hauptstraße 61".
-
 export default function OeffnungszeitenKontakt() {
   return (
     <section id="kontakt" className="section">

@@ -8,12 +8,10 @@ export const business = {
 };
 
 export const address = {
-  street: "Hauptstraße 61",
-  // TODO: Hausnummer vor Launch mit Christina abgleichen — manche Verzeichnisse
-  // listen "Hauptstraße 61-63" statt "Hauptstraße 61".
+  street: "Zeithstraße 131",
   zip: "53819",
   city: "Neunkirchen-Seelscheid",
-  full: "Hauptstraße 61, 53819 Neunkirchen-Seelscheid",
+  full: "Zeithstraße 131, 53819 Neunkirchen-Seelscheid",
 };
 
 export const contact = {
