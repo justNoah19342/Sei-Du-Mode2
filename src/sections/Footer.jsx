@@ -45,7 +45,9 @@ export default function Footer() {
           <h3 className={styles.heading}>Öffnungszeiten</h3>
           {openingHours.map((row) => (
             <p key={row.days}>
-              {row.days}: {row.hours}
+              {row.days}:
+              <br />
+              {row.hours}
             </p>
           ))}
         </div>
