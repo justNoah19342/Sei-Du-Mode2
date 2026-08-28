@@ -25,7 +25,7 @@ const TILE_STYLE = "https://tiles.openfreemap.org/styles/liberty";
 // Neunkirchen-Seelscheid" — OpenStreetMap/Nominatim has no address point for
 // this exact house number (it's a long street spanning several hamlets), so
 // Google's own pin coordinates are used instead of a geocoded guess.
-const SHOP_COORDS = [7.3248004, 50.8711177];
+const SHOP_COORDS = [7.324796684116342, 50.87112212977902];
 
 export default function MapView() {
   const containerRef = useRef(null);
