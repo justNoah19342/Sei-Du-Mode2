@@ -55,6 +55,9 @@ export default function Footer() {
           <a href={googleReviewHref} className={styles.link}>
             Google-Bewertungen ansehen
           </a>
+          <a href={googleMapsDirectionsHref} target="_blank" rel="noopener noreferrer" className={styles.link}>
+            Route zum Laden anzeigen
+          </a>
           <a href="/impressum" className={styles.link}>
             Impressum
           </a>
