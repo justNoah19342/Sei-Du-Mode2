@@ -40,33 +40,29 @@ async function handleFacebookVideos(env) {
   reelsUrl.searchParams.set("limit", "30");
   reelsUrl.searchParams.set("access_token", accessToken);
 
-  // The /video_reels edge intermittently rejects an otherwise-valid page
-  // token with a "new Page version" OAuth error on New Pages Experience
-  // pages — observed to succeed and then fail again minutes later with the
-  // exact same token, so it's Meta-side flakiness rather than a real auth
-  // problem. A few retries absorb that; the edge cache below covers the
-  // rest by serving the last known-good list if every retry still fails,
-  // so a Meta hiccup never blanks out the section on the live site.
+  // A few retries plus a last-known-good fallback below, in case Facebook's
+  // API has a brief hiccup — so a transient failure never blanks out the
+  // section on the live site. (The token needs pages_read_user_content, not
+  // just pages_show_list/pages_read_engagement/business_management, or this
+  // edge fails outright with an OAuth error regardless of retries.)
   const cache = caches.default;
   const lastGoodKey = new Request("https://sei-du-mode2.internal-cache/fb-reels-last-good");
 
   let reelsData = null;
-  let lastErrorBody = null;
   for (let attempt = 0; attempt < 3 && !reelsData; attempt++) {
     if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
     try {
       const response = await fetch(reelsUrl);
       if (response.ok) reelsData = await response.json();
-      else lastErrorBody = await response.text();
-    } catch (e) {
-      lastErrorBody = String(e);
+    } catch {
+      // network hiccup — fall through to the next retry
     }
   }
 
   if (!reelsData) {
     const cached = await cache.match(lastGoodKey);
     if (cached) return cached;
-    return jsonResponse({ error: "Facebook API request failed", lastErrorBody }, 502);
+    return jsonResponse({ error: "Facebook API request failed" }, 502);
   }
 
   const videos = (reelsData.data || [])
