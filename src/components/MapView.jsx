@@ -18,10 +18,8 @@ setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
 // project's plain React + CSS Modules stack (no Tailwind/shadcn/TS here).
 // Simplified to a single static marker since we only ever show the shop's
 // own location, not a list of markers.
-// Always dark by design (brand choice), regardless of the visitor's device
-// theme — previously followed prefers-color-scheme, which made the map show
-// up in the light/normal style on any device set to light mode.
-const DARK_TILE_STYLE = "https://tiles.openfreemap.org/styles/dark";
+// Always light by design, regardless of the visitor's device theme.
+const TILE_STYLE = "https://tiles.openfreemap.org/styles/liberty";
 
 // Geocoded via OpenStreetMap Nominatim for "Hauptstraße 61, 53819 Neunkirchen-Seelscheid".
 const SHOP_COORDS = [7.3378908, 50.8440754];
@@ -35,7 +33,7 @@ export default function MapView() {
 
     const map = new MaplibreMap({
       container,
-      style: DARK_TILE_STYLE,
+      style: TILE_STYLE,
       center: SHOP_COORDS,
       zoom: 15,
       // Compact (not disabled) — OpenStreetMap/OpenFreeMap require attribution to stay visible.
