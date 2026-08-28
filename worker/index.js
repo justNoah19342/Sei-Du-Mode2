@@ -40,18 +40,32 @@ async function handleFacebookVideos(env) {
   reelsUrl.searchParams.set("limit", "30");
   reelsUrl.searchParams.set("access_token", accessToken);
 
-  let reelsResponse;
-  try {
-    reelsResponse = await fetch(reelsUrl);
-  } catch {
-    return jsonResponse({ error: "Facebook API unreachable" }, 502);
+  // The /video_reels edge intermittently rejects an otherwise-valid page
+  // token with a "new Page version" OAuth error on New Pages Experience
+  // pages — observed to succeed and then fail again minutes later with the
+  // exact same token, so it's Meta-side flakiness rather than a real auth
+  // problem. A few retries absorb that; the edge cache below covers the
+  // rest by serving the last known-good list if every retry still fails,
+  // so a Meta hiccup never blanks out the section on the live site.
+  const cache = caches.default;
+  const lastGoodKey = new Request("https://sei-du-mode2.internal-cache/fb-reels-last-good");
+
+  let reelsData = null;
+  for (let attempt = 0; attempt < 3 && !reelsData; attempt++) {
+    if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
+    try {
+      const response = await fetch(reelsUrl);
+      if (response.ok) reelsData = await response.json();
+    } catch {
+      // network hiccup — fall through to the next retry
+    }
   }
 
-  if (!reelsResponse.ok) {
+  if (!reelsData) {
+    const cached = await cache.match(lastGoodKey);
+    if (cached) return cached;
     return jsonResponse({ error: "Facebook API request failed" }, 502);
   }
-
-  const reelsData = await reelsResponse.json();
 
   const videos = (reelsData.data || [])
     .sort((a, b) => new Date(b.created_time) - new Date(a.created_time))
@@ -67,11 +81,17 @@ async function handleFacebookVideos(env) {
       likeCount: video.likes?.summary?.total_count ?? 0,
     }));
 
-  return jsonResponse({ videos }, 200, {
+  const result = jsonResponse({ videos }, 200, {
     // Short edge/browser cache so the widget doesn't call the Graph API on
     // every single page load.
     "cache-control": "public, max-age=600",
   });
+  // Separate, longer-lived copy kept purely as the fallback for a future
+  // request that hits the flakiness above.
+  await cache.put(lastGoodKey, new Response(JSON.stringify({ videos }), {
+    headers: { "content-type": "application/json", "cache-control": "public, max-age=21600" },
+  }));
+  return result;
 }
 
 function jsonResponse(body, status, extraHeaders = {}) {
