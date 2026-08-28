@@ -56,6 +56,10 @@ export default function SectionColorBubble() {
   // scroll/resize tick in update() below, not tied to the section-settle
   // timing used for the reveal-circle animation.
   const [isDimmed, setIsDimmed] = useState(false);
+  // Fully hidden (not just dimmed) over the map specifically — its own
+  // colors/markers need to read clearly, so a translucent bubble sitting on
+  // top of it is worse than no bubble at all there.
+  const [isOverMap, setIsOverMap] = useState(false);
 
   const activeIndexRef = useRef(0);
   const footerSettleTimeoutRef = useRef(null);
@@ -96,6 +100,9 @@ export default function SectionColorBubble() {
 
       const bubbleRect = bubbleEl.getBoundingClientRect();
       let touchingContent = false;
+
+      const mapEl = document.querySelector("[data-map]");
+      setIsOverMap(!!mapEl && rectsOverlap(bubbleRect, mapEl.getBoundingClientRect()));
 
       for (let i = 0; i < SECTION_COLORS.length; i += 1) {
         const { id, color: sectionColor } = SECTION_COLORS[i];
@@ -185,7 +192,7 @@ export default function SectionColorBubble() {
   }, [isMobile]);
 
   return (
-    <div ref={wrapperRef} className={styles.wrapper} data-hidden={isDimmed}>
+    <div ref={wrapperRef} className={styles.wrapper} data-dimmed={isDimmed} data-over-map={isOverMap}>
       <Bubble color={bubbleBackground(color)} size={isMobile ? 90 : 140} />
     </div>
   );

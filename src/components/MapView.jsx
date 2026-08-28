@@ -91,6 +91,7 @@ export default function MapView() {
       className={styles.map}
       role="img"
       aria-label="Karte mit dem Standort von SEI DU Mode in Neunkirchen-Seelscheid"
+      data-map
     />
   );
 }

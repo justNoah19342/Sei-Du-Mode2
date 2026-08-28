@@ -9,8 +9,12 @@
   transition: opacity 260ms var(--ease-reveal);
 }
 
-.wrapper[data-hidden="true"] {
+.wrapper[data-dimmed="true"] {
   opacity: 0.2;
+}
+
+.wrapper[data-over-map="true"] {
+  opacity: 0;
 }
 
 /* Hidden while a product card is enlarged (see CategoryCoverflow.jsx) — the

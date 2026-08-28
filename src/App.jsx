@@ -65,7 +65,7 @@ export default function App() {
       {isHome && <SectionColorBubble />}
       <div className={styles.layout}>
         <Sidebar />
-        <div className={styles.main}>
+        <main className={styles.main}>
           <MobileHeader isOpen={isDrawerOpen} onToggle={() => setDrawerOpen((v) => !v)} />
           <MobileDrawer isOpen={isDrawerOpen} onClose={() => setDrawerOpen(false)} />
           <Routes>
@@ -73,7 +73,7 @@ export default function App() {
             <Route path="/impressum" element={<Impressum />} />
             <Route path="/datenschutz" element={<Datenschutz />} />
           </Routes>
-        </div>
+        </main>
         <CallFAB />
       </div>
       <CookieBanner />
