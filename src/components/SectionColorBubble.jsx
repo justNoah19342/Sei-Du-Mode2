@@ -1,13 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import Bubble from "./Bubble";
 import { useMediaQuery } from "../hooks/useMediaQuery";
-import {
-  SECTION_COLORS,
-  getSectionRevealState,
-  markSectionSettled,
-  publishSectionReveal,
-  subscribeSectionReveal,
-} from "../lib/sectionRevealStore";
+import { SECTION_COLORS, markSectionSettled, publishSectionReveal } from "../lib/sectionRevealStore";
 import styles from "./SectionColorBubble.module.css";
 
 const BUBBLE_SIZE_DESKTOP = 140;
@@ -43,16 +37,25 @@ function bubbleBackground(color) {
   return `radial-gradient(circle at 35% 30%, ${lighten(color, 0.55)} 0%, ${color} 100%)`;
 }
 
+function rectsOverlap(a, b) {
+  return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+}
+
+// What counts as "an element" the bubble can visibly sit on top of — actual
+// foreground content, not the plain section background it floats over most
+// of the time.
+const CONTENT_SELECTOR = 'h1, h2, h3, h4, p, a, button, img, video, [class*="card" i]';
+
 export default function SectionColorBubble() {
   const wrapperRef = useRef(null);
   const [color, setColor] = useState(SECTION_COLORS[0].color);
   const isMobile = useMediaQuery("(max-width: 599px)");
 
-  // Hidden once the current section has fully taken on its color — the bubble
-  // "became" that color, so it has nothing left to show. Reappears the moment
-  // a new section starts taking over (activeIndex changes) and hides again
-  // once that one settles too.
-  const [isHidden, setIsHidden] = useState(false);
+  // Dimmed while the bubble's own on-screen rect actually overlaps a piece
+  // of foreground content (heading, card, image, ...) — recomputed every
+  // scroll/resize tick in update() below, not tied to the section-settle
+  // timing used for the reveal-circle animation.
+  const [isDimmed, setIsDimmed] = useState(false);
 
   const activeIndexRef = useRef(0);
   const footerSettleTimeoutRef = useRef(null);
@@ -62,16 +65,6 @@ export default function SectionColorBubble() {
   // combined with the getBoundingClientRect reads right after, forced a
   // synchronous layout recalculation on every scroll tick (see rafId below).
   const metricsRef = useRef({ margin: 0, headerOffset: 0 });
-
-  useLayoutEffect(() => {
-    setIsHidden(() => {
-      const state = getSectionRevealState();
-      return state.settledIndex === state.activeIndex;
-    });
-    return subscribeSectionReveal((state) => {
-      setIsHidden(state.settledIndex === state.activeIndex);
-    });
-  }, []);
 
   useLayoutEffect(() => {
     const measureStaticMetrics = () => {
@@ -102,6 +95,7 @@ export default function SectionColorBubble() {
       bubbleEl.style.top = `${topOffset + progress * travel}px`;
 
       const bubbleRect = bubbleEl.getBoundingClientRect();
+      let touchingContent = false;
 
       for (let i = 0; i < SECTION_COLORS.length; i += 1) {
         const { id, color: sectionColor } = SECTION_COLORS[i];
@@ -113,6 +107,17 @@ export default function SectionColorBubble() {
         // "don't change until fully in the new section" requirement.
         if (rect.top <= bubbleRect.top && rect.bottom >= bubbleRect.bottom) {
           setColor((current) => (current === sectionColor ? current : sectionColor));
+
+          // Only checked within the section the bubble is currently inside —
+          // content from a section it's no longer over shouldn't count.
+          for (const contentEl of el.querySelectorAll(CONTENT_SELECTOR)) {
+            const contentRect = contentEl.getBoundingClientRect();
+            if (contentRect.width === 0 || contentRect.height === 0) continue;
+            if (rectsOverlap(bubbleRect, contentRect)) {
+              touchingContent = true;
+              break;
+            }
+          }
 
           // Drives SectionReveal's circular reveal — kept independent of the
           // color dedup above, since two adjacent sections can legitimately
@@ -142,6 +147,8 @@ export default function SectionColorBubble() {
           break;
         }
       }
+
+      setIsDimmed(touchingContent);
     };
 
     // Scroll fires far more often than the browser can usefully repaint —
@@ -178,7 +185,7 @@ export default function SectionColorBubble() {
   }, [isMobile]);
 
   return (
-    <div ref={wrapperRef} className={styles.wrapper} data-hidden={isHidden}>
+    <div ref={wrapperRef} className={styles.wrapper} data-hidden={isDimmed}>
       <Bubble color={bubbleBackground(color)} size={isMobile ? 90 : 140} />
     </div>
   );
