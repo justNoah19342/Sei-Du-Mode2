@@ -86,6 +86,26 @@
   }
 }
 
+/* Between the two-column desktop layout and the fully stacked mobile one,
+   there's enough width to keep the photo and info list side by side (photo
+   pushed left, info list pushed right) while letting the form drop to its
+   own full-width row below both — avoids the cramped single narrow column
+   the plain <=899px stack would otherwise force here. */
+@media (min-width: 700px) and (max-width: 899px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "photo info"
+      "form form";
+    row-gap: var(--space-6);
+  }
+
+  .infoList {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
 @media (max-width: 599px) {
   .mapBleed {
     height: 45vh;
