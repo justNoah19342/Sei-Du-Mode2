@@ -14,9 +14,14 @@ const SKELETON_COUNT = 5;
 // Cards per row on desktop (matches .grid's 5-column layout) — also how many
 // more videos each "mehr" click reveals, one full row at a time.
 const GRID_COLUMNS = 5;
+// Upper bound on how many of the fetched videos this section ever shows,
+// on both the desktop grid (even after repeatedly clicking "mehr") and the
+// mobile swipe carousel.
+const MAX_VIDEOS = 10;
 
 function FacebookVideoRow({ revealed, isStacked }) {
-  const { status, videos } = useFacebookVideos();
+  const { status, videos: fetchedVideos } = useFacebookVideos();
+  const videos = fetchedVideos.slice(0, MAX_VIDEOS);
   const [visibleCount, setVisibleCount] = useState(GRID_COLUMNS);
   const [activeVideo, setActiveVideo] = useState(null);
   const hasMore = visibleCount < videos.length;
