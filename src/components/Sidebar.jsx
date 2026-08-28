@@ -11,6 +11,7 @@ import { useNavigateToSection } from "../hooks/useNavigateToSection";
 import styles from "./Sidebar.module.css";
 
 const ids = navItems.map((item) => item.id);
+const WIDE_QUERY = "(min-width: 1450px)";
 
 function rectsOverlap(a, b) {
   return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
@@ -19,11 +20,26 @@ function rectsOverlap(a, b) {
 export default function Sidebar() {
   const activeId = useActiveSection(ids);
   const [collapsed, setCollapsed] = useState(false);
+  // Above 1450px there's enough room to keep the sidebar permanently open —
+  // the hover-driven collapse/expand exists only to save space on narrower
+  // desktop viewports.
+  const [isWide, setIsWide] = useState(
+    () => typeof window !== "undefined" && window.matchMedia(WIDE_QUERY).matches
+  );
   const [motifDimmed, setMotifDimmed] = useState(false);
   const handleNavClick = useNavigateToSection();
   const motifRef = useRef(null);
   const navListRef = useRef(null);
   const callCtaRef = useRef(null);
+
+  useEffect(() => {
+    const query = window.matchMedia(WIDE_QUERY);
+    const handleChange = (e) => setIsWide(e.matches);
+    query.addEventListener("change", handleChange);
+    return () => query.removeEventListener("change", handleChange);
+  }, []);
+
+  const effectiveCollapsed = collapsed && !isWide;
 
   // The dancer motif is pinned to the sidebar's bottom-left corner; on short
   // viewports the nav list / call button can slide down far enough to
@@ -31,7 +47,7 @@ export default function Sidebar() {
   // means it only dims when a real collision happens, and un-dims again the
   // moment there's room.
   useEffect(() => {
-    if (collapsed) {
+    if (effectiveCollapsed) {
       setMotifDimmed(false);
       return;
     }
@@ -52,23 +68,25 @@ export default function Sidebar() {
     const observer = new ResizeObserver(checkOverlap);
     observer.observe(document.documentElement);
     return () => observer.disconnect();
-  }, [collapsed, activeId]);
+  }, [effectiveCollapsed, activeId]);
 
   return (
     <aside
-      className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""}`}
+      className={`${styles.sidebar} ${effectiveCollapsed ? styles.collapsed : ""}`}
       onMouseEnter={() => setCollapsed(false)}
       onMouseLeave={() => setCollapsed(true)}
     >
-      <button
-        type="button"
-        className={styles.touchToggle}
-        onClick={() => setCollapsed((v) => !v)}
-        aria-expanded={!collapsed}
-        aria-label={collapsed ? "Navigation ausklappen" : "Navigation einklappen"}
-      >
-        <CaretLeft size={14} weight="bold" />
-      </button>
+      {!isWide && (
+        <button
+          type="button"
+          className={styles.touchToggle}
+          onClick={() => setCollapsed((v) => !v)}
+          aria-expanded={!effectiveCollapsed}
+          aria-label={effectiveCollapsed ? "Navigation ausklappen" : "Navigation einklappen"}
+        >
+          <CaretLeft size={14} weight="bold" />
+        </button>
+      )}
 
       {/* Rendered outside the collapsed guard (unlike the rest of the
           sidebar content) so collapsing fades it out via CSS instead of an
@@ -80,7 +98,7 @@ export default function Sidebar() {
         style={motifDimmed ? { opacity: 0.12, filter: "grayscale(1)" } : undefined}
       />
 
-      {!collapsed && (
+      {!effectiveCollapsed && (
         <>
           <BlobShape variant="glow" className={styles.blobGlow} />
 
