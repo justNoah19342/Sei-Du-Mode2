@@ -10,7 +10,7 @@
 }
 
 .wrapper[data-hidden="true"] {
-  opacity: 0;
+  opacity: 0.2;
 }
 
 /* Hidden while a product card is enlarged (see CategoryCoverflow.jsx) — the
