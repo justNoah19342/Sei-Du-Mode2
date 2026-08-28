@@ -1,10 +1,11 @@
 import { lazy, Suspense } from "react";
-import { MapPin, Phone, EnvelopeSimple, Clock, Image } from "@phosphor-icons/react";
+import { MapPin, Phone, EnvelopeSimple, Clock } from "@phosphor-icons/react";
 import SectionHeading from "../components/SectionHeading";
 import ContactForm from "../components/ContactForm";
 import SectionReveal from "../components/SectionReveal";
 import { address, contact, openingHours, googleMapsDirectionsHref } from "../data/content";
 import { getSectionInfo } from "../lib/sectionRevealStore";
+import gruppenbild from "../assets/Gruppenbild.jpeg";
 import styles from "./OeffnungszeitenKontakt.module.css";
 
 const { index: SECTION_INDEX, color: SECTION_COLOR } = getSectionInfo("kontakt");
@@ -26,10 +27,11 @@ export default function OeffnungszeitenKontakt() {
         <SectionHeading eyebrow="Öffnungszeiten & Kontakt" title="Schau vorbei" align="center" />
 
         <div className={styles.grid}>
-          <div className={styles.photoPlaceholder} aria-hidden="true">
-            <Image size={32} weight="light" />
-            <span>Platzhalter</span>
-          </div>
+          <img
+            src={gruppenbild}
+            alt="Das SEI DU Mode Team"
+            className={styles.photo}
+          />
 
           <ul className={styles.infoList}>
             <li>
