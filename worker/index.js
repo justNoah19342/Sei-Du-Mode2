@@ -3,7 +3,7 @@
 // through to the built site in ./dist via the ASSETS binding. Google Reviews
 // are static hand-written copy now (see src/data/reviews.js) — no longer
 // fetched through here.
-const GRAPH_API_VERSION = "v21.0";
+const GRAPH_API_VERSION = "v26.0";
 
 export default {
   async fetch(request, env) {
@@ -51,20 +51,22 @@ async function handleFacebookVideos(env) {
   const lastGoodKey = new Request("https://sei-du-mode2.internal-cache/fb-reels-last-good");
 
   let reelsData = null;
+  let lastErrorBody = null;
   for (let attempt = 0; attempt < 3 && !reelsData; attempt++) {
     if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
     try {
       const response = await fetch(reelsUrl);
       if (response.ok) reelsData = await response.json();
-    } catch {
-      // network hiccup — fall through to the next retry
+      else lastErrorBody = await response.text();
+    } catch (e) {
+      lastErrorBody = String(e);
     }
   }
 
   if (!reelsData) {
     const cached = await cache.match(lastGoodKey);
     if (cached) return cached;
-    return jsonResponse({ error: "Facebook API request failed" }, 502);
+    return jsonResponse({ error: "Facebook API request failed", lastErrorBody }, 502);
   }
 
   const videos = (reelsData.data || [])
