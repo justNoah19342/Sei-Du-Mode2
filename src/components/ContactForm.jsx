@@ -1,5 +1,4 @@
 import { useState } from "react";
-import AppointmentPicker, { formatAppointmentLine } from "./AppointmentPicker";
 import styles from "./ContactForm.module.css";
 
 // Web3Forms takes submissions at one fixed endpoint for every user — which
@@ -12,17 +11,12 @@ const isConfigured = Boolean(accessKey);
 
 export default function ContactForm() {
   const [status, setStatus] = useState("idle");
-  const [appointment, setAppointment] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus("sending");
 
     const formData = new FormData(e.target);
-    if (appointment) {
-      const message = formData.get("message") || "";
-      formData.set("message", `${formatAppointmentLine(appointment)}\n\n${message}`);
-    }
     formData.set("access_key", accessKey);
 
     try {
@@ -76,8 +70,6 @@ export default function ContactForm() {
         <span>E-Mail</span>
         <input type="email" name="email" required autoComplete="email" />
       </label>
-
-      <AppointmentPicker value={appointment} onChange={setAppointment} />
 
       <label className={styles.field}>
         <span>Nachricht</span>

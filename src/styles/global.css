@@ -11,9 +11,9 @@ body {
   overflow-x: hidden;
 }
 
-/* Both the enlarged-product overlay (CategoryCoverflow) and the calendar
-   overlay (AppointmentPicker) toggle this class on body while open, and
-   already blur what's behind them via backdrop-filter on the overlay
+/* Enlarged-overlay components (CategoryCoverflow, the Facebook video modal)
+   toggle this class on body while open, and already blur what's behind them
+   via backdrop-filter on the overlay
    itself. backdrop-filter isn't reliably supported/enabled on every
    browser/GPU though (it can silently no-op, leaving just the dark tint
    with a sharp, un-blurred background under it) — blurring the app's own
@@ -93,7 +93,7 @@ h3 {
   font-size: var(--fs-sm);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-primary-dark);
+  color: var(--color-primary);
   font-weight: 600;
   margin-bottom: var(--space-2);
 }

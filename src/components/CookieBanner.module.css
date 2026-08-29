@@ -154,14 +154,6 @@
   color: var(--color-secondary-dark);
 }
 
-/* CallFAB (CallFAB.module.css) also sits bottom-right at this breakpoint —
-   stacked above it here instead of overlapping. */
-@media (max-width: 899px) {
-  .reopenButton {
-    bottom: calc(var(--space-5) + 56px + var(--space-3));
-  }
-}
-
 @media (max-width: 599px) {
   .reopenButton {
     right: var(--space-3);

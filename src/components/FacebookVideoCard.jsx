@@ -311,9 +311,9 @@ function FacebookVideoEmbed({ video }) {
 // top/left in Facebook's own embed player, the post's full text sits in a
 // scrollable panel next to/below it (SocialMedia.module.css switches that
 // side-by-side layout to stacked under a mobile-width breakpoint). Same
-// overlay technique as CategoryCoverflow's enlarged product card and
-// AppointmentPicker's calendar box — blurred, click-outside-to-close,
-// scroll-locked — reusing the shared "product-overlay-open" body class so it
+// overlay technique as CategoryCoverflow's enlarged product card — blurred,
+// click-outside-to-close, scroll-locked — reusing the shared
+// "product-overlay-open" body class so it
 // gets the same #root blur fallback and chrome-hiding rules for free.
 export function VideoModal({ video, onClose }) {
   const zoomScale = useZoomCompensation();

@@ -306,9 +306,9 @@
 }
 
 /* Desktop "watch" modal — same overlay/zoomLock/overlayCard technique as
-   CategoryCoverflow's enlarged product card and AppointmentPicker's calendar
-   box (blurred backdrop, click-outside-to-close, scroll-locked via the
-   shared "product-overlay-open" body class). Own @keyframes names (rather
+   CategoryCoverflow's enlarged product card (blurred backdrop,
+   click-outside-to-close, scroll-locked via the shared
+   "product-overlay-open" body class). Own @keyframes names (rather
    than reusing those files' identical overlayFade/overlayCardIn) just to
    keep this module's globals independent of theirs. */
 /* Redeclares .section's --fb-* custom properties: createPortal moves this
