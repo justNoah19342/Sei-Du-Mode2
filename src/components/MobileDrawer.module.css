@@ -36,14 +36,21 @@
 }
 
 /* Same dancer-figure watermark as the Hero background and the desktop
-   Sidebar's corner motif — grey and large in the drawer's own background,
-   clipped by .drawer's overflow:hidden. */
+   Sidebar's corner motif — grey, centered, and sized like a `cover`
+   background image: width/height (via the SVG's own 1241x1268 aspect
+   ratio) always grow to at least fill the viewport in both directions, so
+   the figure keeps covering nearly the whole drawer at any screen size
+   instead of just sitting at a fixed pixel size. .drawer's overflow:hidden
+   crops whatever spills past the edges. */
 .motif {
-  bottom: -60px;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  width: 380px;
-  height: 390px;
+  transform: translate(-50%, -50%);
+  width: max(100vw, 100vh * 0.9787);
+  /* Overrides reset.css's blanket `svg { max-width: 100% }` — without this
+     the figure could never grow past the drawer's own width. */
+  max-width: none;
+  aspect-ratio: 1241 / 1268;
   color: var(--color-text-muted);
   opacity: 0.14;
 }
