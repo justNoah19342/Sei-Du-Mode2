@@ -3,7 +3,6 @@ import Logo from "./Logo";
 import BlobShape from "./BlobShape";
 import NavLink from "./NavLink";
 import { navItems } from "../data/navigation";
-import { contact } from "../data/content";
 import { useActiveSection } from "../hooks/useActiveSection";
 import { useNavigateToSection } from "../hooks/useNavigateToSection";
 import styles from "./MobileDrawer.module.css";
@@ -63,9 +62,6 @@ export default function MobileDrawer({ isOpen, onClose }) {
           ))}
         </ul>
       </nav>
-      <a href={contact.phoneHref} className={styles.callCta}>
-        Jetzt anrufen
-      </a>
     </div>
   );
 }

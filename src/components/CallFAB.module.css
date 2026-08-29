@@ -3,7 +3,10 @@
   position: fixed;
   right: var(--space-5);
   bottom: var(--space-5);
-  z-index: 25;
+  /* Above the mobile drawer's z-index (40) so it stays visible while the
+     nav is open, matching how the cookie banner (z-index 200) also stays
+     put over the drawer. */
+  z-index: 45;
   width: 56px;
   height: 56px;
   align-items: center;
