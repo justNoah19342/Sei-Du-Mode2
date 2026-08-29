@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import Logo from "./Logo";
 import BlobShape from "./BlobShape";
+import DancerMotif from "./DancerMotif";
 import NavLink from "./NavLink";
 import { navItems } from "../data/navigation";
 import { useActiveSection } from "../hooks/useActiveSection";
@@ -44,6 +45,7 @@ export default function MobileDrawer({ isOpen, onClose }) {
       inert={!isOpen}
     >
       <BlobShape variant="glow" className={styles.blobGlow} />
+      <DancerMotif className={styles.motif} />
       <div className={styles.topRow}>
         <Logo size="sm" />
         <button ref={closeButtonRef} className={styles.close} onClick={onClose} aria-label="Menü schließen">

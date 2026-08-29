@@ -123,8 +123,12 @@
 
 .reopenButton {
   position: fixed;
-  right: var(--space-4);
-  bottom: var(--space-4);
+  /* Mirrors CallFAB's left/bottom exactly (CallFAB.module.css) so the two
+     buttons sit directly across from each other; bottom adds half the
+     44px/56px size difference so both circles share the same vertical
+     center despite being different sizes. */
+  right: var(--space-5);
+  bottom: calc(var(--space-5) + 6px);
   z-index: 200;
   display: flex;
   align-items: center;
@@ -154,8 +158,3 @@
   color: var(--color-secondary-dark);
 }
 
-@media (max-width: 599px) {
-  .reopenButton {
-    right: var(--space-3);
-  }
-}

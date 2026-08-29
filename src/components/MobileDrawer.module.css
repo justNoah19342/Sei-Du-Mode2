@@ -35,6 +35,19 @@
   height: 260px;
 }
 
+/* Same dancer-figure watermark as the Hero background and the desktop
+   Sidebar's corner motif — grey and large in the drawer's own background,
+   clipped by .drawer's overflow:hidden. */
+.motif {
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 380px;
+  height: 390px;
+  color: var(--color-text-muted);
+  opacity: 0.14;
+}
+
 .topRow {
   position: relative;
   z-index: 1;

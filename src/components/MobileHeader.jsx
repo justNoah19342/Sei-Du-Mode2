@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { List, X } from "@phosphor-icons/react";
 import Logo from "./Logo";
-import DancerMotif from "./DancerMotif";
 import styles from "./MobileHeader.module.css";
 
 const HEIGHT_VAR = "--mobile-header-height";
@@ -32,7 +31,6 @@ export default function MobileHeader({ isOpen, onToggle }) {
 
   return (
     <header className={styles.header} ref={headerRef}>
-      <DancerMotif className={styles.motif} />
       <Logo size="sm" />
       <button
         className={styles.toggle}
