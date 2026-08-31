@@ -151,18 +151,6 @@ export function VideoCard({ video, revealed, onOpen }) {
   const description = video.description || "";
   const isLongDescription = description.length > DESCRIPTION_TRUNCATE_LENGTH;
 
-  // EXPERIMENTAL, per explicit request to test the trade-off against the
-  // click-to-load pattern discussed with the user: instead of only loading a
-  // video once its own card is opened, every card on the page starts
-  // playing its clip (muted, so autoplay is actually allowed by the browser)
-  // as soon as general consent is given. This is the opposite of the
-  // performance-friendly "facade" pattern normally recommended — it fires a
-  // Facebook iframe request per visible card up front.
-  const { consent } = useCookieConsent();
-  const thumbRef = useRef(null);
-  const previewActive = consent === "accepted";
-  const previewSize = useEmbedSize(thumbRef, video, previewActive);
-
   return (
     <motion.li
       layout
@@ -199,26 +187,9 @@ export function VideoCard({ video, revealed, onOpen }) {
           onClick={() => onOpen(video)}
         >
           <div
-            ref={thumbRef}
             className={styles.thumb}
             style={video.thumbnail ? { backgroundImage: `url(${video.thumbnail})` } : undefined}
           >
-            {previewActive && video.permalinkUrl && previewSize && (
-              <iframe
-                key={video.id}
-                className={styles.thumbVideoFrame}
-                src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
-                  video.permalinkUrl
-                )}&show_text=false&autoplay=true&mute=1&width=${previewSize.width}&height=${previewSize.height}`}
-                width={previewSize.width}
-                height={previewSize.height}
-                title=""
-                tabIndex={-1}
-                aria-hidden="true"
-                allow="autoplay"
-                frameBorder="0"
-              />
-            )}
             <span className={styles.playBadge}>
               <Play className={styles.playIcon} size={18} weight="fill" />
             </span>
