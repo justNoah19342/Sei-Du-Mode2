@@ -61,6 +61,54 @@ function formatLikeCount(count) {
   return String(count);
 }
 
+// Shared sizing logic between the card's inline preview and the modal's
+// full embed — both need to size a Facebook video.php iframe to fill a box
+// of their own shape while respecting the video's real aspect ratio (see
+// the long comment on FacebookVideoEmbed below for why offsetWidth/Height
+// and the thumbnail-aspect fallback are used instead of the simpler
+// alternatives).
+function useEmbedSize(containerRef, video, active) {
+  const [size, setSize] = useState(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!active || !video.permalinkUrl || !container) return undefined;
+    let cancelled = false;
+
+    const computeSize = (nativeAspect) => {
+      if (cancelled || !containerRef.current) return;
+      const boxWidth = containerRef.current.offsetWidth;
+      const boxHeight = containerRef.current.offsetHeight;
+      const boxAspect = boxWidth / boxHeight;
+      const aspect = nativeAspect || boxAspect;
+      const width = Math.round(aspect >= boxAspect ? boxWidth : boxHeight * aspect);
+      const height = Math.round(width / aspect);
+      setSize({ width, height });
+    };
+
+    const apiAspect = video.width && video.height ? video.width / video.height : null;
+
+    if (apiAspect) {
+      computeSize(apiAspect);
+    } else if (video.thumbnail) {
+      const img = new Image();
+      img.onload = () => {
+        computeSize(img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : null);
+      };
+      img.onerror = () => computeSize(null);
+      img.src = video.thumbnail;
+    } else {
+      computeSize(null);
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [containerRef, video.permalinkUrl, video.thumbnail, video.width, video.height, active]);
+
+  return size;
+}
+
 function VideoActions({ liked, onToggleLike, likeCount, video }) {
   // The heart only ever toggles a local, visual "liked" state (see VideoCard/
   // VideoModal) — there's no real Facebook user session to like through, so
@@ -103,6 +151,18 @@ export function VideoCard({ video, revealed, onOpen }) {
   const description = video.description || "";
   const isLongDescription = description.length > DESCRIPTION_TRUNCATE_LENGTH;
 
+  // EXPERIMENTAL, per explicit request to test the trade-off against the
+  // click-to-load pattern discussed with the user: instead of only loading a
+  // video once its own card is opened, every card on the page starts
+  // playing its clip (muted, so autoplay is actually allowed by the browser)
+  // as soon as general consent is given. This is the opposite of the
+  // performance-friendly "facade" pattern normally recommended — it fires a
+  // Facebook iframe request per visible card up front.
+  const { consent } = useCookieConsent();
+  const thumbRef = useRef(null);
+  const previewActive = consent === "accepted";
+  const previewSize = useEmbedSize(thumbRef, video, previewActive);
+
   return (
     <motion.li
       layout
@@ -139,9 +199,26 @@ export function VideoCard({ video, revealed, onOpen }) {
           onClick={() => onOpen(video)}
         >
           <div
+            ref={thumbRef}
             className={styles.thumb}
             style={video.thumbnail ? { backgroundImage: `url(${video.thumbnail})` } : undefined}
           >
+            {previewActive && video.permalinkUrl && previewSize && (
+              <iframe
+                key={video.id}
+                className={styles.thumbVideoFrame}
+                src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
+                  video.permalinkUrl
+                )}&show_text=false&autoplay=true&mute=1&width=${previewSize.width}&height=${previewSize.height}`}
+                width={previewSize.width}
+                height={previewSize.height}
+                title=""
+                tabIndex={-1}
+                aria-hidden="true"
+                allow="autoplay"
+                frameBorder="0"
+              />
+            )}
             <span className={styles.playBadge}>
               <Play className={styles.playIcon} size={18} weight="fill" />
             </span>
@@ -215,61 +292,17 @@ export function VideoCard({ video, revealed, onOpen }) {
 // falls back to the box's own aspect only if there's no thumbnail either.
 function FacebookVideoEmbed({ video }) {
   const containerRef = useRef(null);
-  const [size, setSize] = useState(null);
   const { consent, accept } = useCookieConsent();
-
-  useEffect(() => {
-    const container = containerRef.current;
-    // Measuring/loading the iframe is pointless without consent — skip
-    // straight past it so accepting later (see the button below) doesn't
-    // need this same effect to somehow re-fire; consent flips this whole
-    // component to the accepted branch below instead, which mounts a fresh
-    // FacebookVideoEmbed-shaped render with this effect running for the
-    // first time.
-    if (!video.permalinkUrl || !container || consent !== "accepted") return undefined;
-    let cancelled = false;
-
-    const computeSize = (nativeAspect) => {
-      if (cancelled || !containerRef.current) return;
-      // offsetWidth/offsetHeight (not getBoundingClientRect) — the modal's
-      // entrance animation (.overlayCard's fbOverlayCardIn keyframes, see
-      // SocialMedia.module.css) scales the whole card up from 92% right as
-      // this effect fires, and getBoundingClientRect reports whatever
-      // mid-animation size is current at that instant. That baked a
-      // permanently-too-small width/height into the iframe (its HTML
-      // attributes are only ever set once here), leaving a gap on every
-      // side once the animation finished growing the box around it.
-      // offsetWidth/offsetHeight are the element's actual layout size and
-      // ignore CSS transforms entirely, so they're correct regardless of
-      // where the animation happens to be.
-      const boxWidth = containerRef.current.offsetWidth;
-      const boxHeight = containerRef.current.offsetHeight;
-      const boxAspect = boxWidth / boxHeight;
-      const aspect = nativeAspect || boxAspect;
-      const width = Math.round(aspect >= boxAspect ? boxWidth : boxHeight * aspect);
-      const height = Math.round(width / aspect);
-      setSize({ width, height });
-    };
-
-    const apiAspect = video.width && video.height ? video.width / video.height : null;
-
-    if (apiAspect) {
-      computeSize(apiAspect);
-    } else if (video.thumbnail) {
-      const img = new Image();
-      img.onload = () => {
-        computeSize(img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : null);
-      };
-      img.onerror = () => computeSize(null);
-      img.src = video.thumbnail;
-    } else {
-      computeSize(null);
-    }
-
-    return () => {
-      cancelled = true;
-    };
-  }, [video.permalinkUrl, video.thumbnail, video.width, video.height, consent]);
+  // Measuring/loading the iframe is pointless without consent — the hook
+  // no-ops until accepted, then this component mounts a fresh
+  // FacebookVideoEmbed-shaped render with the effect running for the first
+  // time (see useEmbedSize above; offsetWidth/offsetHeight is used there
+  // rather than getBoundingClientRect specifically because the modal's
+  // entrance animation, .overlayCard's fbOverlayCardIn keyframes in
+  // SocialMedia.module.css, scales the card up from 92% right as this
+  // effect fires, and getBoundingClientRect would bake in whatever
+  // mid-animation size happens to be current at that instant).
+  const size = useEmbedSize(containerRef, video, consent === "accepted");
 
   return (
     <div ref={containerRef} className={styles.overlayVideo}>
