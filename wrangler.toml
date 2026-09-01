@@ -6,3 +6,10 @@ compatibility_date = "2024-09-23"
 directory = "./dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
+
+[[analytics_engine_datasets]]
+binding = "FB_VIDEO_FAILURES"
+dataset = "fb_video_failures"
+
+[vars]
+CF_ACCOUNT_ID = "cfde262ac67a8b65768f3df122594e12"
