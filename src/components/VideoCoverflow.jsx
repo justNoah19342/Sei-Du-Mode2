@@ -110,6 +110,13 @@ export default function VideoCoverflow({ videos, onOpen }) {
             <div
               key={p}
               className={styles.slide}
+              // inert on off-center slides matches the pointerEvents:"none"
+              // above by also blocking keyboard: without it, the like/share/
+              // thumbnail buttons of faded and fully invisible (opacity:0
+              // buffer) slides stayed in the tab order and were still
+              // clickable via Enter/Space.
+              inert={!isCenter}
+              aria-hidden={!isCenter}
               style={{
                 opacity: step.opacity,
                 transform: `translateX(calc(-50% + ${delta} * (var(--cf-width) + var(--cf-gap)))) scale(${step.scale})`,

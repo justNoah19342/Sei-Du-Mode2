@@ -551,14 +551,6 @@
   }
 }
 
-@media (max-width: 899px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 599px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
-}
+/* No responsive .grid rules below 899px: SocialMedia.jsx's own isStacked
+   check switches from this grid to VideoCoverflow's swipe carousel at that
+   exact same width, so the grid is never actually rendered there. */

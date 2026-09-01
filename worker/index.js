@@ -53,7 +53,14 @@ async function handleFacebookVideos(env) {
     if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
     try {
       const response = await fetch(reelsUrl);
-      if (response.ok) reelsData = await response.json();
+      if (!response.ok) continue;
+      const body = await response.json();
+      // The Graph API can respond 200 with an { error: {...} } body instead
+      // of an HTTP error status (expired/invalid token, revoked permission,
+      // rate limiting) — treat that the same as a failed attempt so it gets
+      // retried instead of being accepted as "zero videos".
+      if (body.error) continue;
+      reelsData = body;
     } catch {
       // network hiccup — fall through to the next retry
     }

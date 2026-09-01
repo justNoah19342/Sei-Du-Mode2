@@ -5,18 +5,51 @@ import { FacebookLogo, Heart, Play, WhatsappLogo, X } from "@phosphor-icons/reac
 import logo from "../assets/logo.jpeg";
 import { useCookieConsent } from "../hooks/useCookieConsent";
 import { useZoomCompensation } from "../hooks/useZoomCompensation";
+import { isLiked, subscribeLiked, toggleLiked } from "../lib/likedVideosStore";
 import styles from "../sections/SocialMedia.module.css";
+
+// Shared between the card and its watch modal (see likedVideosStore) so
+// liking a video in one place shows as liked in the other too, instead of
+// each view tracking its own separate "liked" state for the same video.
+function useLiked(videoId) {
+  const [liked, setLiked] = useState(() => isLiked(videoId));
+
+  useEffect(() => {
+    setLiked(isLiked(videoId));
+    return subscribeLiked(() => setLiked(isLiked(videoId)));
+  }, [videoId]);
+
+  return [liked, () => toggleLiked(videoId)];
+}
+
+// Whether the description's own text-overflow: ellipsis is actually clipping
+// it — measured off the rendered element (scrollWidth > clientWidth) rather
+// than guessed from character count, so the "mehr" button's visibility
+// matches the real 1-line truncation exactly regardless of container width
+// (grid column vs. narrower mobile coverflow) or character widths. Re-checks
+// on resize since the same description can wrap differently as the card's
+// own width changes.
+function useIsOverflowing(ref, deps) {
+  const [isOverflowing, setIsOverflowing] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const measure = () => setIsOverflowing(el.scrollWidth > el.clientWidth);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+
+  return isOverflowing;
+}
 
 // Shared between the desktop grid (SocialMedia.jsx) and the mobile swipe
 // carousel (VideoCoverflow.jsx) — both need the exact same card design and
 // "watch" modal, just laid out differently around them.
 
-// Descriptions longer than this get a "mehr" button — a rough character
-// estimate for whether the 1-line description is likely to overflow and
-// need the ellipsis at all (the ellipsis itself is exact, handled by CSS
-// text-overflow, not this — this constant only decides whether to bother
-// showing the button in the first place).
-const DESCRIPTION_TRUNCATE_LENGTH = 40;
 const ENTRANCE_DURATION = 0.6;
 // Mirrors --ease-reveal's curve — hardcoded because Framer Motion transition
 // configs are plain JS values, not CSS custom properties.
@@ -144,12 +177,18 @@ export function VideoCard({ video, revealed, onOpen }) {
   // Tracks whether the one-time scroll entrance has finished, so a later
   // layout change (e.g. resizing the window across a grid breakpoint) snaps
   // instantly instead of replaying the slide — layout stays "live" for the
-  // component's whole lifetime otherwise.
-  const [hasSettled, setHasSettled] = useState(false);
-  const [liked, setLiked] = useState(false);
+  // component's whole lifetime otherwise. Starts already settled when the
+  // card mounts revealed (prefers-reduced-motion, or a card added later via
+  // "mehr") — it will never go through the stacked-to-grid layout change
+  // that fires onLayoutAnimationComplete below, so without this it would
+  // stay stuck unsettled and every later layout change would incorrectly
+  // keep replaying the slow entrance easing instead of snapping.
+  const [hasSettled, setHasSettled] = useState(revealed);
+  const [liked, toggleLike] = useLiked(video.id);
   const isStacked = !revealed;
   const description = video.description || "";
-  const isLongDescription = description.length > DESCRIPTION_TRUNCATE_LENGTH;
+  const descriptionRef = useRef(null);
+  const isLongDescription = useIsOverflowing(descriptionRef, [description]);
 
   return (
     <motion.li
@@ -197,7 +236,7 @@ export function VideoCard({ video, revealed, onOpen }) {
         </button>
       </div>
 
-      <VideoActions liked={liked} onToggleLike={() => setLiked((value) => !value)} likeCount={video.likeCount ?? 0} video={video} />
+      <VideoActions liked={liked} onToggleLike={toggleLike} likeCount={video.likeCount ?? 0} video={video} />
 
       {/* Always rendered — even with a short or missing description — so
          every card reserves the same space a full 1-line one would need
@@ -216,7 +255,7 @@ export function VideoCard({ video, revealed, onOpen }) {
          same watch modal the thumbnail does, same as if "mehr" is just
          another way to reach the full video + full description. */}
       <div className={styles.descriptionRow}>
-        <p className={styles.description}>{description}</p>
+        <p ref={descriptionRef} className={styles.description}>{description}</p>
         {isLongDescription && (
           <button type="button" className={styles.moreButton} onClick={() => onOpen(video)}>
             mehr
@@ -321,7 +360,7 @@ function FacebookVideoEmbed({ video }) {
 // gets the same #root blur fallback and chrome-hiding rules for free.
 export function VideoModal({ video, onClose }) {
   const zoomScale = useZoomCompensation();
-  const [liked, setLiked] = useState(false);
+  const [liked, toggleLike] = useLiked(video.id);
 
   useEffect(() => {
     const onKeyDown = (e) => {
@@ -368,7 +407,7 @@ export function VideoModal({ video, onClose }) {
             </div>
             {description && <p className={styles.overlayDescription}>{description}</p>}
             <div className={styles.overlayActions}>
-              <VideoActions liked={liked} onToggleLike={() => setLiked((value) => !value)} likeCount={video.likeCount ?? 0} video={video} />
+              <VideoActions liked={liked} onToggleLike={toggleLike} likeCount={video.likeCount ?? 0} video={video} />
             </div>
           </div>
         </div>
