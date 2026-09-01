@@ -136,9 +136,13 @@ function logVideoFailure(env, request, reason) {
 // broken down by reason, over a selectable time window. Meant for us to
 // check in on, not for site visitors.
 async function handleVideoStatusPage(request, env) {
+  // Each person gets their own name + password pair (rather than one shared
+  // login) — set as separate Worker secrets (ADMIN_PASSWORD_<NAME>) so any
+  // one person's access can be revoked/rotated without affecting the other.
   const auth = request.headers.get("authorization");
-  const providedPassword = auth?.startsWith("Basic ") ? atob(auth.slice(6)).split(":")[1] : null;
-  if (!env.ADMIN_PASSWORD || providedPassword !== env.ADMIN_PASSWORD) {
+  const [username, password] = auth?.startsWith("Basic ") ? atob(auth.slice(6)).split(":") : [null, null];
+  const expectedPassword = username ? env[`ADMIN_PASSWORD_${username.toUpperCase()}`] : null;
+  if (!expectedPassword || password !== expectedPassword) {
     return new Response("Authentication required", {
       status: 401,
       headers: { "www-authenticate": 'Basic realm="Video-Status"' },
