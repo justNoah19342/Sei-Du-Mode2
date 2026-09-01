@@ -156,41 +156,53 @@ async function handleVideoStatusPage(request, env) {
     : { unit: "HOUR", lookbackAmount: "24" };
 
   let rows = [];
+  let ipRows = [];
   let queryError = null;
   if (env.CF_ACCOUNT_ID && env.CF_API_TOKEN) {
-    try {
-      const sql = `
-        SELECT
-          toStartOfInterval(timestamp, INTERVAL '1' ${unit}) AS bucket,
-          index1 AS reason,
-          sum(_sample_interval) AS count
-        FROM fb_video_failures
-        WHERE timestamp > NOW() - INTERVAL '${lookbackAmount}' ${unit}
-        GROUP BY bucket, reason
-        ORDER BY bucket
-        FORMAT JSON
-      `;
-      const resp = await fetch(
-        `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/analytics_engine/sql`,
-        { method: "POST", headers: { authorization: `Bearer ${env.CF_API_TOKEN}`, "content-type": "text/plain" }, body: sql }
-      );
-      const text = await resp.text();
-      if (!resp.ok) {
-        queryError = `HTTP ${resp.status}: ${text.slice(0, 300)}`;
-      } else {
-        const json = JSON.parse(text);
-        rows = json.data || [];
-      }
-    } catch (err) {
-      queryError = String(err);
-    }
+    const timeSeries = await runAnalyticsQuery(env, `
+      SELECT
+        toStartOfInterval(timestamp, INTERVAL '1' ${unit}) AS bucket,
+        index1 AS reason,
+        sum(_sample_interval) AS count
+      FROM fb_video_failures
+      WHERE timestamp > NOW() - INTERVAL '${lookbackAmount}' ${unit}
+      GROUP BY bucket, reason
+      ORDER BY bucket
+      FORMAT JSON
+    `);
+    const byIp = await runAnalyticsQuery(env, `
+      SELECT blob1 AS ip, sum(_sample_interval) AS count
+      FROM fb_video_failures
+      WHERE timestamp > NOW() - INTERVAL '${lookbackAmount}' ${unit}
+      GROUP BY ip
+      ORDER BY count DESC
+      LIMIT 50
+      FORMAT JSON
+    `);
+    rows = timeSeries.rows;
+    ipRows = byIp.rows;
+    queryError = timeSeries.error || byIp.error;
   } else {
     queryError = "CF_ACCOUNT_ID / CF_API_TOKEN nicht konfiguriert";
   }
 
-  return new Response(renderVideoStatusHtml({ rows, range, unit, queryError }), {
+  return new Response(renderVideoStatusHtml({ rows, ipRows, range, unit, queryError }), {
     headers: { "content-type": "text/html; charset=utf-8" },
   });
+}
+
+async function runAnalyticsQuery(env, sql) {
+  try {
+    const resp = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/analytics_engine/sql`,
+      { method: "POST", headers: { authorization: `Bearer ${env.CF_API_TOKEN}`, "content-type": "text/plain" }, body: sql }
+    );
+    const text = await resp.text();
+    if (!resp.ok) return { rows: [], error: `HTTP ${resp.status}: ${text.slice(0, 300)}` };
+    return { rows: JSON.parse(text).data || [], error: null };
+  } catch (err) {
+    return { rows: [], error: String(err) };
+  }
 }
 
 const REASON_LABELS = {
@@ -198,7 +210,7 @@ const REASON_LABELS = {
   fallback_cache: { label: "Notfall-Speicher genutzt (Besucher sieht letzte gute Liste)", color: "#f59e0b" },
 };
 
-function renderVideoStatusHtml({ rows, range, unit, queryError }) {
+function renderVideoStatusHtml({ rows, ipRows, range, unit, queryError }) {
   const buckets = [...new Set(rows.map((r) => r.bucket))].sort();
   const reasons = Object.keys(REASON_LABELS);
   const series = reasons.map((reason) => ({
@@ -279,6 +291,11 @@ function renderVideoStatusHtml({ rows, range, unit, queryError }) {
   .empty { color: #16a34a; text-align: center; padding: 60px 0; font-size: 0.95rem; }
   .error { color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px 14px; font-size: 0.85rem; margin-bottom: 16px; }
   .total { color: #666; font-size: 0.85rem; margin-top: 4px; }
+  .card-title { font-size: 1rem; margin: 0 0 12px; }
+  .ip-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .ip-table th, .ip-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #f0f0ee; }
+  .ip-table th { color: #666; font-weight: 600; }
+  .ip-table td:last-child, .ip-table th:last-child { text-align: right; }
 </style>
 </head>
 <body>
@@ -296,6 +313,17 @@ function renderVideoStatusHtml({ rows, range, unit, queryError }) {
         ${series.map((s) => `<div class="legend-item"><span class="dot" style="background:${s.color}"></span>${s.label}</div>`).join("")}
       </div>
       <p class="total">Fehlschläge im Zeitraum insgesamt: ${totalFailures}</p>
+    </div>
+    <div class="card" style="margin-top:20px">
+      <h2 class="card-title">Nach IP-Adresse</h2>
+      ${ipRows.length === 0
+        ? `<p class="empty">Keine Fehlschläge im gewählten Zeitraum${queryError ? "" : " — gut so."}</p>`
+        : `<table class="ip-table">
+            <thead><tr><th>IP-Adresse</th><th>Anzahl Fehlschläge</th></tr></thead>
+            <tbody>
+              ${ipRows.map((r) => `<tr><td>${escapeHtml(String(r.ip))}</td><td>${r.count}</td></tr>`).join("")}
+            </tbody>
+          </table>`}
     </div>
   </div>
 </body>
