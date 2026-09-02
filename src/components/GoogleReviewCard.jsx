@@ -16,10 +16,10 @@ const ENTRANCE_EASE = [0.25, 0.46, 0.45, 0.94];
 // are easier to reason about and tune by eye than a formula chasing every
 // possible length.
 const FONT_SIZE_TIERS = [
-  { maxLength: 220, fontSize: "0.85rem" },
-  { maxLength: 320, fontSize: "0.8rem" },
-  { maxLength: 420, fontSize: "0.75rem" },
-  { maxLength: Infinity, fontSize: "0.7rem" },
+  { maxLength: 220, fontSize: "0.95rem" },
+  { maxLength: 320, fontSize: "0.9rem" },
+  { maxLength: 420, fontSize: "0.85rem" },
+  { maxLength: Infinity, fontSize: "0.8125rem" },
 ];
 
 function fontSizeForLength(length) {
