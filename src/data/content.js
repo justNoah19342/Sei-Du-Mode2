@@ -54,7 +54,7 @@ export const werte = [
   },
   {
     title: "Persönliche Beratung",
-    text: "Christina berät ehrlich und persönlich, ganz ohne einstudierte Verkaufssprüche.",
+    text: "Unser Team berät ehrlich und persönlich, ganz ohne einstudierte Verkaufssprüche.",
   },
   {
     title: "Faire Preise, hohe Qualität",
