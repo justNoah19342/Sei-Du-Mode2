@@ -265,6 +265,16 @@ function renderVideoStatusHtml({ rows, ipRows, range, unit, queryError }) {
   const gridLines = 4;
   const yLabels = Array.from({ length: gridLines + 1 }, (_, i) => Math.round((maxCount / gridLines) * i));
 
+  // Below ~640px, squeezing the full-width SVG down via viewBox scaling
+  // shrinks the text (and the two lines' vertical separation) to near
+  // illegibility — a ~10px SVG-unit label becomes a ~4px real pixel on a
+  // 340px phone. Real dashboards (Google Analytics, Amplitude, GitHub's own
+  // graphs) solve this the same way: render the chart at a real, unsquished
+  // pixel width and let people scroll it horizontally, with the y-axis
+  // pinned so the numbers stay readable and in view while scrolling.
+  const mobileMinWidth = Math.max(560, buckets.length * 34);
+  const yAxisPanelPx = Math.round((padL / W) * mobileMinWidth);
+
   // hard_failure (the worse outcome — visitor sees nothing) gets the filled
   // gradient area as the "primary" line; fallback_cache (visitor still sees
   // the last-known-good list) is the dashed secondary line. Mirrors a
@@ -286,7 +296,7 @@ function renderVideoStatusHtml({ rows, ipRows, range, unit, queryError }) {
   const svg = buckets.length === 0
     ? `<p class="empty">Keine Fehlschläge im gewählten Zeitraum${queryError ? "" : " — gut so."}</p>`
     : `
-    <svg viewBox="0 0 ${W} ${H}" class="chart" id="chart-svg" preserveAspectRatio="none">
+    <svg viewBox="0 0 ${W} ${H}" class="chart" id="chart-svg" preserveAspectRatio="none" style="--mobile-w:${mobileMinWidth}px">
       <defs>
         <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="${areaSeries.color}" stop-opacity="0.28" />
@@ -296,7 +306,7 @@ function renderVideoStatusHtml({ rows, ipRows, range, unit, queryError }) {
       ${yLabels.map((v, i) => {
         const y = padT + plotH - (v / maxCount) * plotH;
         return `<line x1="${padL}" y1="${y}" x2="${W - 10}" y2="${y}" class="grid" stroke-dasharray="4 4" />
-                <text x="${padL - 6}" y="${y + 4}" class="axis-label" text-anchor="end">${v}</text>`;
+                <text x="${padL - 6}" y="${y + 4}" class="axis-label axis-label-y" text-anchor="end">${v}</text>`;
       }).join("")}
       ${buckets.map((b, i) => {
         if (buckets.length > 12 && i % Math.ceil(buckets.length / 12) !== 0) return "";
@@ -347,10 +357,44 @@ function renderVideoStatusHtml({ rows, ipRows, range, unit, queryError }) {
   .chart-legend-item { display: flex; align-items: center; gap: 6px; }
   .chart-legend .ring { width: 10px; height: 10px; border-radius: 50%; background: #fff; border: 2px solid; flex-shrink: 0; }
   .chart-wrap { position: relative; }
-  .chart { width: 100%; height: auto; display: block; overflow: visible; }
+  .chart-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .chart { width: 100%; height: auto; display: block; overflow: visible; touch-action: pan-x; }
   .grid { stroke: #ececec; stroke-width: 1; }
   .axis-label { font-size: 10px; fill: #999; }
   .hover-guide { stroke: #ccc; stroke-width: 1; }
+  .chart-yaxis-sticky { display: none; }
+
+  /* Below this width, scaling the fixed-viewBox SVG down to fit makes the
+     text (and the gap between the two lines) unreadably small — so instead
+     the chart renders at a real, unsquished pixel width (--mobile-w, sized
+     to the number of buckets) and scrolls horizontally, the same trick
+     dashboards like Google Analytics or GitHub's own graphs use on phones.
+     The y-axis numbers get pinned in a small sticky panel so they stay
+     legible and in view while the timeline scrolls underneath. */
+  @media (max-width: 640px) {
+    .chart { width: var(--mobile-w, 640px); }
+    .axis-label-y { display: none; }
+    .chart-yaxis-sticky {
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background: #fff;
+      pointer-events: none;
+      box-shadow: 6px 0 8px -6px rgba(0, 0, 0, 0.12);
+      z-index: 2;
+    }
+    .chart-yaxis-sticky span {
+      position: absolute;
+      left: 0;
+      transform: translateY(-50%);
+      font-size: 11px;
+      color: #999;
+    }
+    .chart-wrap.at-start .chart-yaxis-sticky { box-shadow: none; }
+    .tabs a { padding: 11px 18px; font-size: 0.9rem; }
+  }
   .tooltip { position: absolute; pointer-events: none; background: #fff; border: 1px solid #e5e5e2; border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; box-shadow: 0 8px 24px rgba(0,0,0,0.08); min-width: 150px; opacity: 0; transition: opacity 120ms ease; z-index: 5; }
   .tooltip.visible { opacity: 1; }
   .tooltip-date { font-weight: 600; color: #333; margin-bottom: 6px; }
@@ -386,8 +430,17 @@ function renderVideoStatusHtml({ rows, ipRows, range, unit, queryError }) {
         </ul>
       </div>
       <div class="chart-wrap" id="chart-wrap">
-        ${svg}
-        ${buckets.length > 0 ? `<div class="tooltip" id="tooltip"></div>` : ""}
+        <div class="chart-scroll" id="chart-scroll">
+          ${svg}
+        </div>
+        ${buckets.length > 0 ? `
+        <div class="chart-yaxis-sticky" style="width:${yAxisPanelPx}px">
+          ${yLabels.map((v) => {
+            const y = padT + plotH - (v / maxCount) * plotH;
+            return `<span style="top:${((y / H) * 100).toFixed(2)}%">${v}</span>`;
+          }).join("")}
+        </div>
+        <div class="tooltip" id="tooltip"></div>` : ""}
       </div>
       <p class="total">Fehlschläge im Zeitraum insgesamt: ${totalFailures}</p>
     </div>
@@ -407,6 +460,7 @@ function renderVideoStatusHtml({ rows, ipRows, range, unit, queryError }) {
     (function () {
       var data = ${JSON.stringify(chartData)};
       var svg = document.getElementById("chart-svg");
+      var scroller = document.getElementById("chart-scroll");
       var wrap = document.getElementById("chart-wrap");
       var tooltip = document.getElementById("tooltip");
       var guide = document.getElementById("hover-guide");
@@ -418,10 +472,15 @@ function renderVideoStatusHtml({ rows, ipRows, range, unit, queryError }) {
         return {
           x: ((evt.clientX - rect.left) / rect.width) * W,
           y: ((evt.clientY - rect.top) / rect.height) * H,
+          svgRectWidth: rect.width,
         };
       }
 
-      svg.addEventListener("mousemove", function (evt) {
+      // Shared by mouse hover (desktop) and touch tap/drag (mobile) — pointer
+      // events unify both instead of separate mouse/touch handlers, which is
+      // what lets a phone tap and a mouse hover trigger the exact same
+      // crosshair + tooltip behaviour.
+      function update(evt) {
         var p = svgPoint(evt);
         var idx = Math.round((p.x - data.padL) / (data.xStep || 1));
         idx = Math.max(0, Math.min(data.buckets.length - 1, idx));
@@ -448,21 +507,47 @@ function renderVideoStatusHtml({ rows, ipRows, range, unit, queryError }) {
             return '<div class="tooltip-row"><span class="tooltip-label"><span class="tooltip-dot" style="border-color:' + s.color + '"></span>' + s.label.split(" (")[0] + '</span><span class="tooltip-value">' + s.values[idx] + "</span></div>";
           }).join("");
 
-        var wrapRect = wrap.getBoundingClientRect();
-        var relX = (x / W) * wrapRect.width;
+        // The tooltip sits outside the scrolling chart area (so it never
+        // gets clipped by overflow), so its position has to subtract the
+        // scroller's current scroll offset to line up with the crosshair
+        // underneath.
+        var wrapWidth = wrap.getBoundingClientRect().width;
+        var relX = (x / W) * p.svgRectWidth - scroller.scrollLeft;
         var tooltipWidth = tooltip.offsetWidth || 170;
         var left = relX + 16;
-        if (left + tooltipWidth > wrapRect.width) left = relX - tooltipWidth - 16;
+        if (left + tooltipWidth > wrapWidth) left = relX - tooltipWidth - 16;
+        if (left < 0) left = 0;
         tooltip.style.left = left + "px";
         tooltip.style.top = "8px";
         tooltip.classList.add("visible");
-      });
+      }
 
-      svg.addEventListener("mouseleave", function () {
+      function hide() {
         guide.style.display = "none";
         hoverDots.forEach(function (d) { d.style.display = "none"; });
         tooltip.classList.remove("visible");
+      }
+
+      svg.addEventListener("pointerdown", update);
+      svg.addEventListener("pointermove", function (evt) {
+        // For touch, pointermove only fires while a finger is already down
+        // (a drag/scrub) — mirrors mouse hover without fighting the
+        // scroller's native horizontal swipe-to-pan gesture.
+        if (evt.pointerType === "touch" && !(evt.buttons || evt.pressure)) return;
+        update(evt);
       });
+      svg.addEventListener("pointerleave", function (evt) {
+        // Keep the tooltip up after a tap so it can actually be read on a
+        // phone; only a mouse leaving the chart clears it immediately.
+        if (evt.pointerType === "touch") return;
+        hide();
+      });
+
+      function syncScrollShadow() {
+        wrap.classList.toggle("at-start", scroller.scrollLeft <= 2);
+      }
+      scroller.addEventListener("scroll", syncScrollShadow);
+      syncScrollShadow();
     })();
   <\/script>` : ""}
 </body>
