@@ -210,6 +210,26 @@ const REASON_LABELS = {
   fallback_cache: { label: "Notfall-Speicher genutzt (Besucher sieht letzte gute Liste)", color: "#f59e0b" },
 };
 
+// Catmull-Rom-to-Bezier smoothing so the lines read as soft curves instead
+// of sharp per-bucket segments.
+function smoothPath(pts) {
+  if (pts.length === 0) return "";
+  if (pts.length === 1) return `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+  let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] || p2;
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  }
+  return d;
+}
+
 function renderVideoStatusHtml({ rows, ipRows, range, unit, queryError }) {
   const buckets = [...new Set(rows.map((r) => r.bucket))].sort();
   const reasons = Object.keys(REASON_LABELS);
@@ -229,11 +249,10 @@ function renderVideoStatusHtml({ rows, ipRows, range, unit, queryError }) {
   const plotW = W - padL - 10;
   const plotH = H - padT - padB;
   const xStep = buckets.length > 1 ? plotW / (buckets.length - 1) : 0;
+  const baselineY = padT + plotH;
 
-  function pathFor(values) {
-    return values
-      .map((v, i) => `${i === 0 ? "M" : "L"} ${(padL + i * xStep).toFixed(1)} ${(padT + plotH - (v / maxCount) * plotH).toFixed(1)}`)
-      .join(" ");
+  function pointsFor(values) {
+    return values.map((v, i) => ({ x: padL + i * xStep, y: padT + plotH - (v / maxCount) * plotH }));
   }
 
   function formatBucket(iso) {
@@ -246,13 +265,37 @@ function renderVideoStatusHtml({ rows, ipRows, range, unit, queryError }) {
   const gridLines = 4;
   const yLabels = Array.from({ length: gridLines + 1 }, (_, i) => Math.round((maxCount / gridLines) * i));
 
+  // hard_failure (the worse outcome — visitor sees nothing) gets the filled
+  // gradient area as the "primary" line; fallback_cache (visitor still sees
+  // the last-known-good list) is the dashed secondary line. Mirrors a
+  // solid+area-vs-dashed pairing rather than two flat equal-weight lines.
+  const areaSeries = series.find((s) => s.reason === "hard_failure");
+  const dashedSeries = series.find((s) => s.reason === "fallback_cache");
+
+  const chartData = {
+    buckets,
+    unit,
+    series: series.map((s) => ({ reason: s.reason, label: s.label, color: s.color, values: s.values })),
+    padL,
+    xStep,
+    padT,
+    plotH,
+    maxCount,
+  };
+
   const svg = buckets.length === 0
     ? `<p class="empty">Keine Fehlschläge im gewählten Zeitraum${queryError ? "" : " — gut so."}</p>`
     : `
-    <svg viewBox="0 0 ${W} ${H}" class="chart">
+    <svg viewBox="0 0 ${W} ${H}" class="chart" id="chart-svg" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${areaSeries.color}" stop-opacity="0.28" />
+          <stop offset="100%" stop-color="${areaSeries.color}" stop-opacity="0.02" />
+        </linearGradient>
+      </defs>
       ${yLabels.map((v, i) => {
         const y = padT + plotH - (v / maxCount) * plotH;
-        return `<line x1="${padL}" y1="${y}" x2="${W - 10}" y2="${y}" class="grid" />
+        return `<line x1="${padL}" y1="${y}" x2="${W - 10}" y2="${y}" class="grid" stroke-dasharray="4 4" />
                 <text x="${padL - 6}" y="${y + 4}" class="axis-label" text-anchor="end">${v}</text>`;
       }).join("")}
       ${buckets.map((b, i) => {
@@ -260,10 +303,26 @@ function renderVideoStatusHtml({ rows, ipRows, range, unit, queryError }) {
         const x = padL + i * xStep;
         return `<text x="${x}" y="${H - 8}" class="axis-label" text-anchor="middle">${formatBucket(b)}</text>`;
       }).join("")}
-      ${series.map((s) => `<path d="${pathFor(s.values)}" fill="none" stroke="${s.color}" stroke-width="2.5" />`).join("")}
-      ${series.map((s) => s.values.map((v, i) =>
-        v > 0 ? `<circle cx="${(padL + i * xStep).toFixed(1)}" cy="${(padT + plotH - (v / maxCount) * plotH).toFixed(1)}" r="3.5" fill="${s.color}" />` : ""
+
+      ${(() => {
+        const pts = pointsFor(areaSeries.values);
+        const line = smoothPath(pts);
+        const area = `${line} L ${pts[pts.length - 1].x.toFixed(1)} ${baselineY} L ${pts[0].x.toFixed(1)} ${baselineY} Z`;
+        return `<path d="${area}" fill="url(#areaGradient)" stroke="none" />
+                <path d="${line}" fill="none" stroke="${areaSeries.color}" stroke-width="2.5" stroke-linecap="round" />`;
+      })()}
+
+      ${(() => {
+        const pts = pointsFor(dashedSeries.values);
+        return `<path d="${smoothPath(pts)}" fill="none" stroke="${dashedSeries.color}" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="6 5" />`;
+      })()}
+
+      ${series.map((s) => pointsFor(s.values).map((p) =>
+        `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4.5" fill="#fff" stroke="${s.color}" stroke-width="2" />`
       ).join("")).join("")}
+
+      <line id="hover-guide" x1="0" y1="${padT}" x2="0" y2="${baselineY}" class="hover-guide" style="display:none" />
+      ${series.map((s) => `<circle class="hover-dot" data-reason="${s.reason}" r="5.5" fill="#fff" stroke="${s.color}" stroke-width="2.5" style="display:none" />`).join("")}
     </svg>`;
 
   return `<!doctype html>
@@ -282,15 +341,27 @@ function renderVideoStatusHtml({ rows, ipRows, range, unit, queryError }) {
   .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
   .tabs a { padding: 6px 14px; border-radius: 999px; border: 1px solid #ddd; text-decoration: none; color: #333; font-size: 0.85rem; }
   .tabs a.active { background: #111; color: #fff; border-color: #111; }
-  .chart { width: 100%; height: auto; }
-  .grid { stroke: #eee; stroke-width: 1; }
-  .axis-label { font-size: 10px; fill: #888; }
-  .legend { display: flex; flex-direction: column; gap: 6px; margin-top: 16px; font-size: 0.85rem; }
-  .legend-item { display: flex; align-items: center; gap: 8px; }
-  .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .chart-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+  .chart-head-title { font-size: 0.95rem; font-weight: 600; margin: 0; }
+  .chart-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.8rem; color: #555; margin: 0; padding: 0; list-style: none; }
+  .chart-legend-item { display: flex; align-items: center; gap: 6px; }
+  .chart-legend .ring { width: 10px; height: 10px; border-radius: 50%; background: #fff; border: 2px solid; flex-shrink: 0; }
+  .chart-wrap { position: relative; }
+  .chart { width: 100%; height: auto; display: block; overflow: visible; }
+  .grid { stroke: #ececec; stroke-width: 1; }
+  .axis-label { font-size: 10px; fill: #999; }
+  .hover-guide { stroke: #ccc; stroke-width: 1; }
+  .tooltip { position: absolute; pointer-events: none; background: #fff; border: 1px solid #e5e5e2; border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; box-shadow: 0 8px 24px rgba(0,0,0,0.08); min-width: 150px; opacity: 0; transition: opacity 120ms ease; z-index: 5; }
+  .tooltip.visible { opacity: 1; }
+  .tooltip-date { font-weight: 600; color: #333; margin-bottom: 6px; }
+  .tooltip-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .tooltip-row + .tooltip-row { margin-top: 4px; }
+  .tooltip-label { display: flex; align-items: center; gap: 6px; color: #666; }
+  .tooltip-dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; border: 2px solid; flex-shrink: 0; }
+  .tooltip-value { font-weight: 600; color: #111; font-variant-numeric: tabular-nums; }
   .empty { color: #16a34a; text-align: center; padding: 60px 0; font-size: 0.95rem; }
   .error { color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px 14px; font-size: 0.85rem; margin-bottom: 16px; }
-  .total { color: #666; font-size: 0.85rem; margin-top: 4px; }
+  .total { color: #666; font-size: 0.85rem; margin-top: 16px; }
   .card-title { font-size: 1rem; margin: 0 0 12px; }
   .ip-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
   .ip-table th, .ip-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #f0f0ee; }
@@ -308,9 +379,15 @@ function renderVideoStatusHtml({ rows, ipRows, range, unit, queryError }) {
     </div>
     <div class="card">
       ${queryError ? `<div class="error">Konnte Daten nicht laden: ${escapeHtml(String(queryError))}</div>` : ""}
-      ${svg}
-      <div class="legend">
-        ${series.map((s) => `<div class="legend-item"><span class="dot" style="background:${s.color}"></span>${s.label}</div>`).join("")}
+      <div class="chart-head">
+        <p class="chart-head-title">Ausfälle über Zeit</p>
+        <ul class="chart-legend">
+          ${series.map((s) => `<li class="chart-legend-item"><span class="ring" style="border-color:${s.color}"></span>${s.label}</li>`).join("")}
+        </ul>
+      </div>
+      <div class="chart-wrap" id="chart-wrap">
+        ${svg}
+        ${buckets.length > 0 ? `<div class="tooltip" id="tooltip"></div>` : ""}
       </div>
       <p class="total">Fehlschläge im Zeitraum insgesamt: ${totalFailures}</p>
     </div>
@@ -326,6 +403,68 @@ function renderVideoStatusHtml({ rows, ipRows, range, unit, queryError }) {
           </table>`}
     </div>
   </div>
+  ${buckets.length > 0 ? `<script>
+    (function () {
+      var data = ${JSON.stringify(chartData)};
+      var svg = document.getElementById("chart-svg");
+      var wrap = document.getElementById("chart-wrap");
+      var tooltip = document.getElementById("tooltip");
+      var guide = document.getElementById("hover-guide");
+      var hoverDots = Array.prototype.slice.call(svg.querySelectorAll(".hover-dot"));
+      var W = ${W}, H = ${H};
+
+      function svgPoint(evt) {
+        var rect = svg.getBoundingClientRect();
+        return {
+          x: ((evt.clientX - rect.left) / rect.width) * W,
+          y: ((evt.clientY - rect.top) / rect.height) * H,
+        };
+      }
+
+      svg.addEventListener("mousemove", function (evt) {
+        var p = svgPoint(evt);
+        var idx = Math.round((p.x - data.padL) / (data.xStep || 1));
+        idx = Math.max(0, Math.min(data.buckets.length - 1, idx));
+        var x = data.padL + idx * data.xStep;
+
+        guide.setAttribute("x1", x);
+        guide.setAttribute("x2", x);
+        guide.style.display = "block";
+
+        data.series.forEach(function (s, si) {
+          var y = data.padT + data.plotH - (s.values[idx] / data.maxCount) * data.plotH;
+          hoverDots[si].setAttribute("cx", x);
+          hoverDots[si].setAttribute("cy", y);
+          hoverDots[si].style.display = "block";
+        });
+
+        var d = new Date(data.buckets[idx].replace(" ", "T") + "Z");
+        var dateLabel = data.unit === "DAY"
+          ? d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })
+          : d.toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+        tooltip.innerHTML = '<div class="tooltip-date">' + dateLabel + "</div>" +
+          data.series.map(function (s) {
+            return '<div class="tooltip-row"><span class="tooltip-label"><span class="tooltip-dot" style="border-color:' + s.color + '"></span>' + s.label.split(" (")[0] + '</span><span class="tooltip-value">' + s.values[idx] + "</span></div>";
+          }).join("");
+
+        var wrapRect = wrap.getBoundingClientRect();
+        var relX = (x / W) * wrapRect.width;
+        var tooltipWidth = tooltip.offsetWidth || 170;
+        var left = relX + 16;
+        if (left + tooltipWidth > wrapRect.width) left = relX - tooltipWidth - 16;
+        tooltip.style.left = left + "px";
+        tooltip.style.top = "8px";
+        tooltip.classList.add("visible");
+      });
+
+      svg.addEventListener("mouseleave", function () {
+        guide.style.display = "none";
+        hoverDots.forEach(function (d) { d.style.display = "none"; });
+        tooltip.classList.remove("visible");
+      });
+    })();
+  <\/script>` : ""}
 </body>
 </html>`;
 }
