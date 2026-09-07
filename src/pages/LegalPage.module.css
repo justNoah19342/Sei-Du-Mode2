@@ -15,6 +15,11 @@
   margin-bottom: var(--space-6);
 }
 
+.page h2,
+.page h3 {
+  padding-right: 50px;
+}
+
 .page p {
   max-width: 65ch;
   margin-bottom: var(--space-4);
