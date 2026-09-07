@@ -15,9 +15,13 @@
   margin-bottom: var(--space-6);
 }
 
+.page h1,
 .page h2,
 .page h3 {
   padding-right: 50px;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .page p {
