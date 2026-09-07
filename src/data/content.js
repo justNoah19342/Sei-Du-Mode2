@@ -21,6 +21,10 @@ export const contact = {
   emailHref: "mailto:seidu1966@gmail.com",
 };
 
+export const legal = {
+  ustId: "DE315156018",
+};
+
 export const openingHours = [
   { days: "Montag – Freitag", hours: "9:00 – 19:00 Uhr" },
   { days: "Samstag", hours: "9:00 – 14:00 Uhr" },
