@@ -77,15 +77,6 @@
   opacity: 1;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .track {
-    /* The JS loop bails out entirely under reduced motion (see
-       LogoCarousel.jsx), leaving transform unset — this just makes the
-       static, untransformed track scrollable instead. */
-    overflow-x: auto;
-  }
-}
-
 @media (max-width: 599px) {
   .card {
     width: 136px;

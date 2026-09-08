@@ -86,9 +86,6 @@ function LogoCarousel() {
     const track = trackRef.current;
     if (!track) return;
 
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduceMotion) return;
-
     const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
     const gapPx = parseFloat(getComputedStyle(track).columnGap) || 0;
 
