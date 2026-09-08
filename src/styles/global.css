@@ -1,3 +1,11 @@
+/* iOS Safari computes its rubber-band/elastic horizontal scroll range from
+   <html>, not <body> — overflow-x:hidden on body alone still lets the page
+   be swiped past its right edge there even though it's clipped visually.
+   Mirrored on body below for browsers that use body as the scroll root. */
+html {
+  overflow-x: hidden;
+}
+
 body {
   background: var(--color-background);
   color: var(--color-text);

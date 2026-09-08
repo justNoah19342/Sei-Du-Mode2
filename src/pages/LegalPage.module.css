@@ -27,6 +27,8 @@
 .page p {
   max-width: 65ch;
   margin-bottom: var(--space-4);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .imprint {
