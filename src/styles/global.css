@@ -1,7 +1,16 @@
 /* iOS Safari computes its rubber-band/elastic horizontal scroll range from
    <html>, not <body> — overflow-x:hidden on body alone still lets the page
    be swiped past its right edge there even though it's clipped visually.
-   Mirrored on body below for browsers that use body as the scroll root. */
+   This alone also contains the decorative/off-window bleed several
+   sections rely on (motifs, coverflow buffer slides).
+   Deliberately NOT mirrored on body: setting overflow-x on both html and
+   body makes body its own independent scroll container (forces its
+   overflow-y to auto per the CSS visible/non-visible pairing rule) even
+   though body itself never actually scrolls — only html does. Every
+   position:sticky element in the app (Sidebar, AnnouncementBar, ...) then
+   resolves its containing block to that inert body scrollport, so it
+   never re-clamps against real scroll and just drifts away with the page
+   instead of sticking. */
 html {
   overflow-x: hidden;
 }
@@ -12,11 +21,6 @@ body {
   font-family: var(--font-body);
   font-size: var(--fs-body);
   line-height: 1.6;
-  /* Safety net: several sections intentionally bleed decorative or
-     off-window elements past their own edges (motifs, coverflow buffer
-     slides). Without this, that bleed can widen the page's scrollable
-     area and let it scroll further right than the actual content. */
-  overflow-x: hidden;
 }
 
 /* Enlarged-overlay components (CategoryCoverflow, the Facebook video modal)
